@@ -1,5 +1,6 @@
 import express from 'express'
 import router from './routes'
+import db from '../models'
 
 class App {
   public app: express.Application
@@ -19,4 +20,10 @@ class App {
   }
 }
 
+db.sequelize.sync()
+    .then(() => {
+        console.log('데이터베이스 연결됨.');
+    }).catch((err) => {
+        console.error(err);
+    });
 export default new App().app
