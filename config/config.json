@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "test",
-    "password": "test",
-    "database": "test",
-    "host": "host.docker.internal",
+    "username": "root",
+    "password": "root",
+    "database": "lets-walk",
+    "host": "lets-walk",
     "dialect": "postgres"
   },
   "test": {
