@@ -2,8 +2,8 @@ FROM node:14
 
 WORKDIR /app
 
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /app
 COPY ./package*.json /app
-
 RUN npm install
 
 COPY . .
