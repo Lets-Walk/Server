@@ -8,5 +8,8 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 4000
+RUN chmod +x wait-for-it.sh
+
+ENV NODE_ENV development
+EXPOSE 3000
 CMD ["npm", "run","dev"]
