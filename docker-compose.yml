@@ -1,0 +1,29 @@
+version : "3.8"
+services:
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=lets-walk
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+    
+  apiserver:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+    command:
+      - bash
+      - -c
+      - |
+        /app/wait-for-it.sh db:5432 -t 10
+        npm run dev
+    
