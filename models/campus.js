@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: true },
   )
   Campus.associate = (models) => {
-    Campus.hasOne(models.User)
+    Campus.hasMany(models.User)
   }
   return Campus
 }
