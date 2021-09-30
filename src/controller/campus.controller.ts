@@ -18,11 +18,6 @@ campusController.get('/', async (req, res) => {
   }
 
   res.status(200).json({ status: 200, message: 'success', data: result })
-  //   if (result) {
-  //     res.status(200).json({ status: 200, message: 'success', data: result })
-  //   } else {
-  //     res.status(400).json({ status: 400, message: 'campus does not exist' })
-  //   }
 })
 
 export default campusController
