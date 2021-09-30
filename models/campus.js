@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
     },
-    { timestamps: true },
+    { timestamps: false, freezeTableName: true },
   )
   Campus.associate = (models) => {
     Campus.hasMany(models.User)
