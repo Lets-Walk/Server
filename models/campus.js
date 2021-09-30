@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: false, freezeTableName: true },
   )
   Campus.associate = (models) => {
-    Campus.hasMany(models.User)
+    Campus.hasMany(models.User, { foreignKey: 'campusId' })
   }
   return Campus
 }

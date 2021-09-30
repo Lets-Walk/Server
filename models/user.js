@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: true },
   )
   User.associate = (models) => {
-    User.belongsTo(models.Campus)
+    User.belongsTo(models.Campus, { foreignKey: 'campusId' })
     User.hasOne(models.Walk)
   }
   return User

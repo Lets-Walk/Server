@@ -7,7 +7,8 @@ const authController = express.Router()
 authController.post('/sign-up', async (req, res) => {
   const userData = req.body
 
-  res.send(await AuthService.signup(userData))
+  const result = await AuthService.signup(userData)
+  if (result.status) return res.status(result.status).json(result)
 })
 
 authController.post('/email', async (req, res) => {
@@ -20,4 +21,15 @@ authController.post('/email', async (req, res) => {
   res.send(code)
 })
 
+authController.post('/login', async (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) {
+    return res
+      .status(400)
+      .json({ status: 400, message: 'email or password not exist' })
+  }
+
+  const result = await AuthService.login(email, password)
+  if (result.status) return res.status(result.status).json(result)
+})
 export default authController
