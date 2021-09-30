@@ -1,4 +1,4 @@
-version : "3.8"
+version: '3.8'
 services:
   postgres:
     image: postgres
@@ -11,7 +11,7 @@ services:
       - POSTGRES_PASSWORD=root
     volumes:
       - ./database/data:/var/lib/postgresql/data
-    
+
   apiserver:
     build:
       context: .
@@ -25,7 +25,6 @@ services:
       - -c
       - |
         /app/wait-for-it.sh db:5432 -t 10
-        npm run dev
+        yarn dev
     volumes:
-      - ./:/app
-    
+      - ./src:/app/src
