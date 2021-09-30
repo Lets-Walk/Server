@@ -1,12 +1,12 @@
 import express from 'express'
 
 import db from '../../models'
-import { CampusResult } from '../../constants/interface'
+import { serviceResult } from '../../constants/interface'
 
 class CampusService {
   constructor() {}
 
-  async getAllCampus(): Promise<CampusResult> {
+  async getAllCampus(): Promise<serviceResult> {
     let AllCampus = null
     try {
       AllCampus = await db.Campus.findAll()
@@ -27,7 +27,7 @@ class CampusService {
     }
   }
 
-  async getOneCampus(name: string): Promise<CampusResult> {
+  async getOneCampus(name: string): Promise<serviceResult> {
     let Campus = null
     try {
       Campus = await db.Campus.findOne({
