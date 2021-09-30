@@ -28,3 +28,6 @@ services:
         yarn dev
     volumes:
       - ./src:/app/src
+      - ./models:/app/models
+      - ./constants:/app/constants
+      # - /app/node_modules

@@ -1,14 +1,15 @@
 import express from 'express'
 import router from './routes'
 import db from '../models'
+import campus_list from '../constants/campus_list'
 
 class App {
   public app: express.Application
 
   constructor() {
     this.app = express()
-    this.getRouting()
     this.setMiddleWare()
+    this.getRouting()
     this.dbConnection()
   }
 
@@ -18,7 +19,7 @@ class App {
   }
 
   getRouting() {
-    this.app.use('/', router)
+    this.app.use('/api', router)
   }
 
   dbConnection() {
@@ -30,6 +31,9 @@ class App {
       })
       .then(() => {
         console.log('DB Sync complete.')
+        db.Campus.bulkCreate(campus_list).then(() => {
+          console.log('campus_list bulk create')
+        })
       })
       .catch((err) => {
         console.error('Unable to connect to the database:', err)
