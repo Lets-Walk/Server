@@ -8,6 +8,8 @@ class App {
   constructor() {
     this.app = express()
     this.getRouting()
+    this.setMiddleWare()
+    this.dbConnection()
   }
 
   setMiddleWare() {
@@ -18,12 +20,21 @@ class App {
   getRouting() {
     this.app.use('/', router)
   }
+
+  dbConnection() {
+    db.sequelize
+      .authenticate()
+      .then(() => {
+        console.log('Connection has been established successfully.')
+        return db.sequelize.sync({ force: true })
+      })
+      .then(() => {
+        console.log('DB Sync complete.')
+      })
+      .catch((err) => {
+        console.error('Unable to connect to the database:', err)
+      })
+  }
 }
 
-db.sequelize.sync()
-    .then(() => {
-        console.log('데이터베이스 연결됨.');
-    }).catch((err) => {
-        console.error(err);
-    });
 export default new App().app
