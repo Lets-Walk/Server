@@ -1,23 +1,21 @@
 import express from 'express'
 
 import CampusService from '../service/campus.service'
+import { CampusResult } from '../../constants/interface'
 
 const campusController = express.Router()
 
 campusController.get('/', async (req, res) => {
-  const { name } = req.query
-  let result = null
-  try {
-    if (!name) {
-      result = await CampusService.getAllCampus()
-    } else {
-      result = await CampusService.getOneCampus(name)
-    }
-  } catch (e) {
-    return res.status(400).json({ status: 400, message: e })
+  const { name }: { name?: string } = req.query
+
+  let result: CampusResult = {}
+  if (!name) {
+    result = await CampusService.getAllCampus()
+  } else {
+    result = await CampusService.getOneCampus(name)
   }
 
-  res.status(200).json({ status: 200, message: 'success', data: result })
+  if (result.status) return res.status(result.status).json(result)
 })
 
 export default campusController

@@ -1,27 +1,33 @@
 import express from 'express'
 
 import db from '../../models'
+import { CampusResult } from '../../constants/interface'
 
 class CampusService {
   constructor() {}
 
-  async getAllCampus() {
+  async getAllCampus(): Promise<CampusResult> {
     let AllCampus = null
     try {
       AllCampus = await db.Campus.findAll()
     } catch (err) {
       console.error(err)
-      throw 'db connection error'
+      return { status: 400, success: false, message: 'db connection error' }
     }
 
     if (!AllCampus) {
-      throw 'campus does not exist'
+      return { status: 404, success: false, message: 'Campus does not exist' }
     }
 
-    return AllCampus
+    return {
+      status: 200,
+      success: true,
+      message: 'All Campus data',
+      data: AllCampus,
+    }
   }
 
-  async getOneCampus(name) {
+  async getOneCampus(name: string): Promise<CampusResult> {
     let Campus = null
     try {
       Campus = await db.Campus.findOne({
@@ -29,13 +35,18 @@ class CampusService {
       })
     } catch (err) {
       console.error(err)
-      throw 'db connection error'
+      return { status: 400, success: false, message: 'db connection error' }
     }
     if (!Campus) {
-      throw 'campus does not exist'
+      return { status: 404, success: false, message: 'Campus does not exist' }
     }
 
-    return Campus
+    return {
+      status: 200,
+      success: true,
+      message: `${name} Campus data`,
+      data: Campus,
+    }
   }
 }
 
