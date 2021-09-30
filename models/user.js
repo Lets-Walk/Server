@@ -42,6 +42,7 @@ module.exports = (sequelize, DataTypes) => {
   )
   User.associate = (models) => {
     User.belongsTo(models.Campus)
+    User.hasOne(models.Walk)
   }
   return User
 }
