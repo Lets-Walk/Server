@@ -1,21 +1,21 @@
 import express from 'express'
 
-import db from '../../models'
+import { Campus } from '../../models'
 import { serviceResult } from '../../constants/interface'
 
 class CampusService {
   constructor() {}
 
   async getAllCampus(): Promise<serviceResult> {
-    let AllCampus = null
+    let allCampus = null
     try {
-      AllCampus = await db.Campus.findAll()
+      allCampus = await Campus.findAll()
     } catch (err) {
       console.error(err)
       return { status: 400, success: false, message: 'db connection error' }
     }
 
-    if (!AllCampus) {
+    if (!allCampus) {
       return { status: 404, success: false, message: 'Campus does not exist' }
     }
 
@@ -23,29 +23,29 @@ class CampusService {
       status: 200,
       success: true,
       message: 'All Campus data',
-      data: AllCampus,
+      data: allCampus,
     }
   }
 
   async getOneCampus(name: string): Promise<serviceResult> {
-    let Campus = null
+    let campus = null
     try {
-      Campus = await db.Campus.findOne({
+      campus = await Campus.findOne({
         where: { name: name },
       })
     } catch (err) {
       console.error(err)
       return { status: 400, success: false, message: 'db connection error' }
     }
-    if (!Campus) {
-      return { status: 404, success: false, message: 'Campus does not exist' }
+    if (!campus) {
+      return { status: 404, success: false, message: 'campus does not exist' }
     }
 
     return {
       status: 200,
       success: true,
-      message: `${name} Campus data`,
-      data: Campus,
+      message: `${name} campus data`,
+      data: campus,
     }
   }
 }
