@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { User } from '../../models'
+import { User, Walk } from '../../models'
 import { serviceResult } from '../../constants/interface'
 
 class AuthService {
@@ -14,13 +14,19 @@ class AuthService {
     const { password }: { password?: string } = userData
     try {
       const hashPassword: string = await bcrypt.hash(password, 12)
-      const user = await User.create({
-        name: userData.name,
-        email: userData.email,
-        nickname: userData.nickname,
-        password: hashPassword,
-        campusId: userData.campusId,
-      })
+      const user = await User.create(
+        {
+          name: userData.name,
+          email: userData.email,
+          nickname: userData.nickname,
+          password: hashPassword,
+          campusId: userData.campusId,
+          Walk,
+        },
+        {
+          include: [{ model: Walk }],
+        },
+      )
       return {
         status: 200,
         success: true,
@@ -28,6 +34,7 @@ class AuthService {
         data: { name: user.name, email: user.email, campusId: user.campusId },
       }
     } catch (err) {
+      console.log(err)
       return { status: 400, success: false, message: 'user create failed' }
     }
   }
