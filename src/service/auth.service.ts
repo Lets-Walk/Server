@@ -1,8 +1,10 @@
 import express from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv'
+dotenv.config()
 
-import db from '../../models'
+import { User } from '../../models'
 import { serviceResult } from '../../constants/interface'
 
 class AuthService {
@@ -13,14 +15,13 @@ class AuthService {
     const hashPassword: string = await bcrypt.hash(password, 12)
 
     try {
-      const user = await db.User.create({
+      const user = await User.create({
         name: userData.name,
         email: userData.email,
         nickname: userData.nickname,
         password: hashPassword,
         campusId: userData.campusId,
       })
-      console.log(user)
       return {
         status: 200,
         success: true,
@@ -33,10 +34,10 @@ class AuthService {
     }
   }
 
-  async login(email, password): Promise<serviceResult> {
+  async login(email: string, password: string): Promise<serviceResult> {
     let user: any = null
     try {
-      user = await db.User.findOne({ where: { email: email } })
+      user = await User.findOne({ where: { email: email } })
     } catch (e) {
       console.error(e)
       return { status: 400, success: false, message: 'db connection error' }
@@ -64,7 +65,7 @@ class AuthService {
   }
 
   async email_validation(email) {
-    // const user = await db.User.findOne({
+    // const user = await User.findOne({
     //   where: { email: email },
     // })
 

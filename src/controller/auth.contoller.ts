@@ -1,6 +1,7 @@
 import express from 'express'
 
 import AuthService from '../service/auth.service'
+import authUser from '../middleware/authUser'
 
 const authController = express.Router()
 
@@ -32,4 +33,17 @@ authController.post('/login', async (req, res) => {
   const result = await AuthService.login(email, password)
   if (result.status) return res.status(result.status).json(result)
 })
+
+authController.get('/me', authUser, (req: any, res) => {
+  let userData = req.user
+  delete userData.password
+
+  return res.status(200).json({
+    status: 200,
+    success: true,
+    message: '/api/auth/me success',
+    user: userData,
+  })
+})
+
 export default authController
