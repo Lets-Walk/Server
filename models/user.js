@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
   )
   User.associate = (models) => {
     User.belongsTo(models.Campus, { foreignKey: 'campusId' })
-    User.hasOne(models.Walk)
+    User.hasOne(models.Walk, { foreignKey: 'userId', onDelete: 'CASCADE' })
   }
   return User
 }

@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     { freezeTableName: true, timestamps: false },
   )
   Walk.associate = (models) => {
-    Walk.belongsTo(models.User)
+    Walk.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' })
   }
   return Walk
 }
