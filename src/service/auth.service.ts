@@ -12,9 +12,8 @@ class AuthService {
 
   async signup(userData): Promise<serviceResult> {
     const { password }: { password?: string } = userData
-    const hashPassword: string = await bcrypt.hash(password, 12)
-
     try {
+      const hashPassword: string = await bcrypt.hash(password, 12)
       const user = await User.create({
         name: userData.name,
         email: userData.email,
@@ -29,7 +28,6 @@ class AuthService {
         data: { name: user.name, email: user.email, campusId: user.campusId },
       }
     } catch (err) {
-      console.error(err)
       return { status: 400, success: false, message: 'user create failed' }
     }
   }

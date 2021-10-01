@@ -40,7 +40,9 @@ const authUser = async (req, res, next) => {
         .json({ status: 400, success: false, message: 'user does not exist' })
     }
   } catch (e) {
-    res.status(400).json({ status: 400, success: false, message: e })
+    res
+      .status(400)
+      .json({ status: 400, success: false, message: 'jwt verify failed' })
   }
 }
 
