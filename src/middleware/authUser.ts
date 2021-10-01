@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-import { User } from '../../models'
+import { User, Walk, Campus } from '../../models'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -30,7 +30,13 @@ const authUser = async (req, res, next) => {
     const { id } = result
     console.log(result)
     try {
-      const user = await User.findOne({ where: { id } })
+      const user = await User.findOne({
+        where: { id },
+        include: [
+          { model: Walk, attributes: ['stepcount', 'wmcount'] },
+          { model: Campus, attributes: ['id', 'name'] },
+        ],
+      })
       req.token = jwtToken
       req.user = user.dataValues
       next()
