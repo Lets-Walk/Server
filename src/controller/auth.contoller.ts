@@ -18,8 +18,9 @@ authController.post('/email', async (req, res) => {
     res.status(400).send('email does not exist')
     return
   }
-  const code = await AuthService.email_validation(email)
-  res.send(code)
+  const result = await AuthService.email_validation(email)
+
+  if (result.status) return res.status(result.status).json(result)
 })
 
 authController.post('/login', async (req, res) => {

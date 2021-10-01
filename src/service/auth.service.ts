@@ -42,7 +42,6 @@ class AuthService {
       console.error(e)
       return { status: 400, success: false, message: 'db connection error' }
     }
-    console.log(user)
     if (!user) {
       return { status: 404, success: false, message: 'User does not exist' }
     }
@@ -64,17 +63,32 @@ class AuthService {
     }
   }
 
-  async email_validation(email) {
-    // const user = await User.findOne({
-    //   where: { email: email },
-    // })
+  async email_validation(email: string): Promise<serviceResult> {
+    let user: any = null
+    try {
+      user = await User.findOne({ where: { email: email } })
+    } catch (e) {
+      console.error(e)
+      return { status: 400, success: false, message: 'db connection error' }
+    }
 
-    // if (user) {
-    //   return
-    // }
-    //TODO :: nodemail통해 mail인증 구현하기, 메일 validation
+    if (user) {
+      return {
+        status: 400,
+        success: false,
+        message: 'This email already exists',
+      }
+    }
+
+    //TODO :: nodemail통해 mail인증 구현하기
     //일단은 인증코드로 0000 return 하는걸로
-    return { code: '0000' }
+
+    return {
+      status: 200,
+      success: true,
+      message: 'email validation success',
+      data: '000000',
+    }
   }
 }
 
