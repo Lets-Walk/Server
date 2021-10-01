@@ -18,4 +18,14 @@ campusController.get('/', async (req, res) => {
   if (result.status) return res.status(result.status).json(result)
 })
 
+campusController.get('/:id/members', async (req, res) => {
+  const { id } = req.params
+  if (!id) {
+    return res.status(400).json({ status: 400, success: false })
+  }
+
+  const result = await CampusService.getMembersById(parseInt(id))
+
+  if (result.status) return res.status(result.status).json(result)
+})
 export default campusController
