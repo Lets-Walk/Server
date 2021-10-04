@@ -29,11 +29,14 @@ class App {
         console.log('Connection has been established successfully.')
         return db.sequelize.sync({ force: false })
       })
-      .then(() => {
+      .then(async () => {
         console.log('DB Sync complete.')
-        db.Campus.bulkCreate(campus_list).then(() => {
-          console.log('campus_list bulk create')
-        })
+        const campus = await db.Campus.findAll()
+        if (campus.length === 0) {
+          db.Campus.bulkCreate(campus_list).then(() => {
+            console.log('campus_list bulk create')
+          })
+        }
       })
       .catch((err) => {
         console.error('Unable to connect to the database:', err)
