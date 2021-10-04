@@ -6,6 +6,7 @@ dotenv.config()
 
 import { User, Walk } from '../../models'
 import { serviceResult } from '../../constants/interface'
+import mailer from '../utils/Mailer'
 
 class AuthService {
   constructor() {}
@@ -85,8 +86,23 @@ class AuthService {
       }
     }
 
-    //TODO :: nodemail통해 mail인증 구현하기
-    //일단은 인증코드로 0000 return 하는걸로
+    // let randomNumber = ''
+    // for (let i = 0; i < 6; i++)
+    //   randomNumber += Math.floor(Math.random() * 10).toString()
+
+    // mailer
+    //   .sendMail({
+    //     from: 'Lets-Walk Team',
+    //     to: email,
+    //     subject: '[Lets-Walk] Registration Authentication',
+    //     text: `인증번호 : [${randomNumber}]`,
+    //   })
+    //   .then(() => {
+    //     console.log(`${email}로 인증번호 전송 완료. 인증번호 : ${randomNumber}`)
+    //   })
+
+    /* 메일 인증할 땐 위 코드 주석풀고 사용하면 됨.
+    개발환경에서는 '00000' 리턴함*/
 
     return {
       status: 200,

@@ -2,6 +2,7 @@ import express from 'express'
 
 import AuthService from '../service/auth.service'
 import authUser from '../middleware/authUser'
+import emailValidator from '../utils/emailValidator'
 
 const authController = express.Router()
 
@@ -14,8 +15,10 @@ authController.post('/sign-up', async (req, res) => {
 
 authController.post('/email', async (req, res) => {
   const { email } = req.body
-  if (!email) {
-    res.status(400).send('email does not exist')
+  if (!email || !emailValidator(email)) {
+    res
+      .status(400)
+      .json({ status: 400, success: false, message: 'check the email' })
     return
   }
   const result = await AuthService.email_validation(email)
@@ -28,7 +31,11 @@ authController.post('/login', async (req, res) => {
   if (!email || !password) {
     return res
       .status(400)
-      .json({ status: 400, message: 'email or password not exist' })
+      .json({
+        status: 400,
+        success: false,
+        message: 'email or password not exist',
+      })
   }
 
   const result = await AuthService.login(email, password)
