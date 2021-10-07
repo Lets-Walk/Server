@@ -37,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(2),
         allowNull: true,
       },
+      profilemessage: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: '',
+      },
     },
     { timestamps: true },
   )
