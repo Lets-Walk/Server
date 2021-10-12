@@ -1,13 +1,19 @@
 import express from 'express'
+import morgan from 'morgan'
+
 import router from './routes'
 import db from '../models'
 import campus_list from '../constants/campus_list'
 
 class App {
-  public app: express.Application
+  public app
+  public server
+  public io
 
   constructor() {
     this.app = express()
+    this.server = require('http').createServer(express())
+    this.io = require('socket.io')(this.server)
     this.setMiddleWare()
     this.getRouting()
     this.dbConnection()
@@ -16,6 +22,7 @@ class App {
   setMiddleWare() {
     this.app.use(express.json())
     this.app.use(express.urlencoded({ extended: false }))
+    this.app.use(morgan('tiny'))
   }
 
   getRouting() {
@@ -44,4 +51,4 @@ class App {
   }
 }
 
-export default new App().app
+export default new App()

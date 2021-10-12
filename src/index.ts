@@ -1,10 +1,13 @@
-import app from './app'
+import App from './app'
 import dotenv from 'dotenv'
+import socketListening from './socket'
+
 dotenv.config()
-
 const PORT = process.env.PORT || 3000
-const serverListening = () => {
-  console.log(`server Running on Port : ${PORT}`)
-}
+const server = App.server
+const io = App.io
 
-app.listen(PORT, serverListening)
+socketListening(io)
+server.listen(PORT, () => {
+  console.log(`Server Running at Port : ${PORT}`)
+})
