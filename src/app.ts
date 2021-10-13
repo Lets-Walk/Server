@@ -12,7 +12,7 @@ class App {
 
   constructor() {
     this.app = express()
-    this.server = require('http').createServer(express())
+    this.server = require('http').createServer(this.app)
     this.io = require('socket.io')(this.server)
     this.setMiddleWare()
     this.getRouting()

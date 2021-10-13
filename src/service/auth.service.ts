@@ -6,7 +6,7 @@ dotenv.config()
 
 import { User, Walk } from '../../models'
 import { serviceResult } from '../../constants/interface'
-import mailer from '../utils/Mailer'
+import mailer from '../utils/mailer'
 
 class AuthService {
   constructor() {}
