@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BIGINT,
         defaultValue: 0,
       },
+      contribution: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
       wmcount: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
