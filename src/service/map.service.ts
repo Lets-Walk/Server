@@ -7,7 +7,16 @@ import ingredient from '../../constants/ingredient'
 class MapService {
   constructor() {}
 
-  getIngredient(name: string): serviceResult {
+  getAllIngredient(): serviceResult {
+    return {
+      status: 200,
+      success: true,
+      data: ingredient,
+      message: 'Get All ingredient success!',
+    }
+  }
+
+  getIngredientByName(name: string): serviceResult {
     if (name in ingredient) {
       const data = ingredient[name]
       return {
