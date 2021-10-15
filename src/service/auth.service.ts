@@ -69,6 +69,26 @@ class AuthService {
     }
   }
 
+  sendEmail(email: string): string {
+    let randomNumber = ''
+
+    for (let i = 0; i < 6; i++)
+      randomNumber += Math.floor(Math.random() * 10).toString()
+
+    mailer
+      .sendMail({
+        from: 'Lets-Walk Team',
+        to: email,
+        subject: '[Lets-Walk] Registration Authentication',
+        text: `인증번호 : [${randomNumber}]`,
+      })
+      .then(() => {
+        console.log(`${email}로 인증번호 전송 완료. 인증번호 : ${randomNumber}`)
+      })
+
+    return randomNumber
+  }
+
   async email_validation(email: string): Promise<serviceResult> {
     let user: any = null
     try {
@@ -86,20 +106,9 @@ class AuthService {
       }
     }
 
-    // let randomNumber = ''
-    // for (let i = 0; i < 6; i++)
-    //   randomNumber += Math.floor(Math.random() * 10).toString()
+    let authCode = '000000'
 
-    // mailer
-    //   .sendMail({
-    //     from: 'Lets-Walk Team',
-    //     to: email,
-    //     subject: '[Lets-Walk] Registration Authentication',
-    //     text: `인증번호 : [${randomNumber}]`,
-    //   })
-    //   .then(() => {
-    //     console.log(`${email}로 인증번호 전송 완료. 인증번호 : ${randomNumber}`)
-    //   })
+    // authCode = this.sendEmail(email)
 
     /* 메일 인증할 땐 위 코드 주석풀고 사용하면 됨.
     개발환경에서는 '00000' 리턴함*/
@@ -108,7 +117,7 @@ class AuthService {
       status: 200,
       success: true,
       message: 'email validation success',
-      data: '000000',
+      data: authCode,
     }
   }
 }
