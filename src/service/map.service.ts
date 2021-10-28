@@ -37,21 +37,33 @@ class MapService {
   getMarkerList(lat: number, lng: number): serviceResult {
     //중심좌표를 기준으로 1.5km 경계값
     const km = 1.5
-    const count = 50
+    const count = 50 //아이템 개수
+    const labCount = 3 //연구실 개수
     const minX = lat - 0.00953 * km
     const minY = lng - 0.01384 * km
     const maxX = lat + 0.00789 * km
     const maxY = lng + 0.00959 * km
 
-    const markerList = this.createMarkerList(minX, maxX, minY, maxY, count)
-    const cnt = {}
-    markerList.forEach((marker) => {
-      marker.type = this.getItemType()
-      if (marker.type in cnt) cnt[marker.type] += 1
-      else cnt[marker.type] = 0
+    const markerList = this.createMarkerList(
+      minX,
+      maxX,
+      minY,
+      maxY,
+      count + labCount,
+    )
+
+    const check: string[] = [] //중복된 연구실을 체크하기 위한 리스트
+    markerList.forEach((marker, index) => {
+      if (index < labCount) {
+        let type
+        do {
+          type = this.getLabType()
+        } while (check.indexOf(type) != -1)
+        marker.type = type
+        check.push(type)
+      } else marker.type = this.getItemType()
     })
-    console.log(markerList)
-    console.log(cnt)
+
     return {
       status: 200,
       success: true,
@@ -59,6 +71,22 @@ class MapService {
       count: markerList.length,
       data: markerList,
     }
+  }
+
+  getLabType(): string {
+    //각 연구실 16.666% 확률
+
+    const num = Math.random()
+    const percent = 0.16666
+    let type
+    if (num < percent) type = '공과'
+    else if (num < percent * 2) type = '자연과학'
+    else if (num < percent * 3) type = '인문'
+    else if (num < percent * 4) type = '경영'
+    else if (num < percent * 5) type = '약학'
+    else if (num < 1) type = '의과'
+
+    return type
   }
 
   getItemType(): string {
