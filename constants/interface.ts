@@ -4,4 +4,11 @@ export interface serviceResult {
   message?: string
   data?: any
   token?: string
+  count?: number
+}
+
+export interface marker {
+  type?: string
+  lat: number
+  lng: number
 }

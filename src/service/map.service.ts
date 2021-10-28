@@ -1,7 +1,7 @@
 import express from 'express'
 
 import { User, Campus, Walk } from '../../models'
-import { serviceResult } from '../../constants/interface'
+import { marker, serviceResult } from '../../constants/interface'
 import ingredient from '../../constants/ingredient'
 
 class MapService {
@@ -37,60 +37,106 @@ class MapService {
   getMarkerList(lat: number, lng: number): serviceResult {
     //중심좌표를 기준으로 1.5km 경계값
     const km = 1.5
+    const count = 50
     const minX = lat - 0.00953 * km
     const minY = lng - 0.01384 * km
     const maxX = lat + 0.00789 * km
     const maxY = lng + 0.00959 * km
 
-    const markerList = this.createMarkerList(minX, maxX, minY, maxY, 50)
-
+    const markerList = this.createMarkerList(minX, maxX, minY, maxY, count)
+    const cnt = {}
+    markerList.forEach((marker) => {
+      marker.type = this.getItemType()
+      if (marker.type in cnt) cnt[marker.type] += 1
+      else cnt[marker.type] = 0
+    })
+    console.log(markerList)
+    console.log(cnt)
     return {
       status: 200,
       success: true,
       message: 'create marker success',
+      count: markerList.length,
       data: markerList,
     }
   }
 
-  getRandomVal(lower, upper) {
+  getItemType(): string {
+    const num = Math.random()
+
+    /*
+    아이템 확률
+    연필 : 28%
+    컴퓨터 : 12%
+    현미경 : 12%
+    책 : 12%
+    계산기 : 12%
+    청진기 : 12%
+    약품 : 12%
+     */
+
+    let type
+    if (num < 0.28) {
+      type = 'Pencil'
+    } else if (num < 0.4) {
+      type = 'Computer'
+    } else if (num < 0.52) {
+      type = 'Microscope'
+    } else if (num < 0.64) {
+      type = 'Book'
+    } else if (num < 0.76) {
+      type = 'Calculator'
+    } else if (num < 0.88) {
+      type = 'Pill'
+    } else if (num < 1) {
+      type = 'Stethoscope'
+    }
+
+    return type
+  }
+
+  getRandomVal(lower: number, upper: number): number {
     let Random = Math.random() * (upper - lower) + lower
     return Random
   }
 
-  createMarkerList(xu, xl, yu, yl, count) {
-    let xy = new Array(2)
-    for (let i = 0; i < 2; i++) {
-      xy[i] = new Array(count)
-    }
-    for (let j = 0; j < count; j++) {
-      xy[0][j] = this.getRandomVal(xu, xl)
-      xy[1][j] = this.getRandomVal(yu, yl)
-      if (j > 0) {
-        let far
-        do {
-          xy[0][j] = this.getRandomVal(xu, xl)
-          xy[1][j] = this.getRandomVal(yu, yl)
-          far = new Array(j)
-          for (let k = 0; k < j; k++) {
-            far[k] = this.getDistance(xy[0][j], xy[1][j], xy[0][k], xy[1][k])
+  createMarkerList(
+    xu: number,
+    xl: number,
+    yu: number,
+    yl: number,
+    count: number,
+  ): marker[] {
+    const threshold = 0.2 //마커간의 거리는 200m 이상 이여야함.
+    const itemList: marker[] = []
+    for (let i = 0; i < count; i++) {
+      let lat: number
+      let lng: number
+
+      let valid: boolean
+      do {
+        lat = this.getRandomVal(xu, xl)
+        lng = this.getRandomVal(yu, yl)
+
+        valid = true
+        for (let j = 0; j < i; j++) {
+          const dist = this.getDistance(
+            itemList[j].lat,
+            itemList[j].lng,
+            lat,
+            lng,
+          )
+          if (dist < threshold) {
+            valid = false
+            break
           }
-          for (let l = 0; l < j; l++) {
-            for (let m = 0; m < j - 1; m++) {
-              if (far[l] < far[m]) {
-                let temp = far[l]
-                far[l] = far[m]
-                far[m] = temp
-              }
-            }
-          }
-        } while (far[0] < 0.2) // 200m 이내면 다시 Marker 생성함
-      }
+        }
+      } while (!valid)
+
+      itemList.push({ lat: lat, lng: lng })
     }
 
-    return {
-      lat: xy[0],
-      lng: xy[1],
-    }
+    return itemList
   }
 
   getDistance(lat1, lng1, lat2, lng2) {
