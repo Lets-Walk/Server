@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: true },
   )
   Crew.associate = (models) => {
+    Crew.hasOne(models.Inventory, { foreignKey: 'crewId' })
     Crew.belongsToMany(models.User, { through: 'Crew-Users' })
   }
   return Crew
