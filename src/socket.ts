@@ -4,7 +4,9 @@ import { v4 as uuidv4 } from 'uuid'
 
 const socketListening = (io) => {
   const matchingQueue = {}
-  const battleQueue: any = []
+  let battleQueue: any = []
+  const crewList: any = []
+  const CREW_SIZE = 2
 
   io.on('connection', (socket) => {
     const date = moment(new Date()).format('HH:mm:ss')
@@ -18,12 +20,12 @@ const socketListening = (io) => {
       if (domain in matchingQueue) {
         //이미 매칭큐가 존재할 때
         matchingQueue[domain].push(socket)
-        console.log(domain + 'roomSize:' + matchingQueue[domain].length)
-        //4명인지 확인 후 크루로 묶음
-        if (matchingQueue[domain].length >= 2) {
+        console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
+        //CREW_SIZE를 만족하는지 확인
+        if (matchingQueue[domain].length >= CREW_SIZE) {
           //큐에서 빼서 하나의 크루 룸으로 만들어야 함.
-          const users = matchingQueue[domain].slice(0, 4)
-          matchingQueue[domain].splice(0, 4) //삭제
+          const users = matchingQueue[domain].slice(0, CREW_SIZE)
+          matchingQueue[domain].splice(0, CREW_SIZE) //삭제
 
           //Room으로 이동
           const roomId = uuidv4()
@@ -40,37 +42,51 @@ const socketListening = (io) => {
 
           io.to(roomId).emit('matching', {
             roomId: roomId,
-            domain: domain,
             msg: '매칭이 완료되었습니다.',
             //...크루매칭 관련 정보들
           })
+          crewList.push(currentRoom)
 
-          //배틀 매칭 큐 확인
-          if (battleQueue.length != 0) {
-            console.log(battleQueue)
-            for (let i = 0; i < battleQueue.length; i++) {
-              const anotherRoom = battleQueue[i]
-              if (anotherRoom.domain !== currentRoom.domain) {
-                console.log('배틀 매칭')
-                //배틀 매칭 로직
-                console.log('All User List')
-                const allUsers = [...anotherRoom.users, ...currentRoom.users]
-                allUsers.map((user) => {
-                  //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
-                })
-              }
+          //배틀매칭 큐 확인
+          let anotherRoom: any = null
+          let del = null
+          for (let i = 0; i < battleQueue.length; i++) {
+            if (currentRoom.domain !== battleQueue[i].domain) {
+              anotherRoom = battleQueue[i]
+
+              break
             }
-          } else {
+          }
+
+          if (!anotherRoom) {
+            //매칭 가능한 크루가 존재하지 않음
             battleQueue.push(currentRoom)
             console.log(`${currentRoom.roomId} 배틀큐에 푸시`)
-            console.log(battleQueue)
+            console.log('현재 배틀큐 목록 : ', battleQueue)
+            return
           }
-          //매칭 큐 확인 후 상대크루가 있으면, 상대크루와 매칭
+
+          console.log('Battle Matching')
+          //배틀 매칭 로직
+          const allUsers = [...anotherRoom.users, ...currentRoom.users]
+          const walkingRoomId = uuidv4()
+          allUsers.map((user) => {
+            //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
+            user.join(walkingRoomId)
+            console.log(`${user.id} 를 ${walkingRoomId}로 이동`)
+          })
+
+          battleQueue = battleQueue.filter((room) => room.id !== anotherRoom.id) //매칭된 크루 삭제
+
+          io.to(walkingRoomId).emit('battleMatching', {
+            walkingRoomId: walkingRoomId,
+            msg: '배틀매칭이 완료되었습니다.',
+          })
         }
       } else {
         matchingQueue[domain] = [socket]
-        console.log(domain + '매칭큐 생성')
-        console.log('roomSize:' + matchingQueue[domain].length)
+        console.log(`[${domain}] 매칭 큐 생성`)
+        console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
       }
     })
   })
