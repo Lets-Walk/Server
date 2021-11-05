@@ -11,15 +11,29 @@ const socketListening = (io) => {
   io.on('connection', (socket) => {
     const date = moment(new Date()).format('HH:mm:ss')
     const id = socket.id
-    // console.log(`[${date}] connection id : ${id}`)
+    console.log(`[${date}] connection id : ${id}`)
 
-    socket.emit('connection', id)
+    socket.on('disconnect', () => {
+      console.log(`${socket.id} disconnecting`)
+    })
+
+    socket.emit('connection')
+
+    socket.on('crewLeave', ({ domain, socketId }) => {
+      //매칭대기열 취소
+      matchingQueue[domain] = matchingQueue[domain].filter(
+        (soc) => soc.id !== socketId,
+      )
+      console.log(`[${socketId}] 를 [${domain}] 매칭 대기열에서 삭제`)
+      console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
+    })
 
     socket.on('crewJoin', ({ domain }) => {
       //크루 매칭 수행
       if (domain in matchingQueue) {
         //이미 매칭큐가 존재할 때
         matchingQueue[domain].push(socket)
+        console.log(`[${socket.id}] 를 [${domain}] 매칭 대기열에 추가`)
         console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
         //CREW_SIZE를 만족하는지 확인
         if (matchingQueue[domain].length >= CREW_SIZE) {
@@ -86,6 +100,7 @@ const socketListening = (io) => {
       } else {
         matchingQueue[domain] = [socket]
         console.log(`[${domain}] 매칭 큐 생성`)
+        console.log(`[${socket.id}] 를 [${domain}] 매칭 대기열에 추가`)
         console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
       }
     })
