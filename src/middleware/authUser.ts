@@ -34,7 +34,7 @@ const authUser = async (req, res, next) => {
         where: { id },
         include: [
           { model: Walk, attributes: ['stepcount', 'wmcount'] },
-          { model: Campus, attributes: ['id', 'name'] },
+          { model: Campus, attributes: ['id', 'name', 'domain', 'image'] },
         ],
       })
       req.token = jwtToken
