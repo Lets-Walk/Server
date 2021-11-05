@@ -28,6 +28,21 @@ const socketListening = (io) => {
       console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
     })
 
+    //TODO : 유저가 배틀매칭에서 나간 후, 다시 크루 매칭을 할 때 나오는 에러 해결
+    socket.on('battleLeave', ({ crewId }) => {
+      //배틀매칭 중 유저가 나감.
+      //같은 크루원들의 매칭이 취소되어아함.
+      socket.broadcast.emit('battleLeave')
+      const currentCrew = battleQueue.find((crew) => crew.roomId === crewId)
+      if (!currentCrew) return
+      currentCrew.users.map((user) => {
+        console.log(`${user.id} 가 ${crewId}룸에서 나감.`)
+        user.leave(crewId)
+      })
+      //현재 배틀큐에 있는 룸 정보 없애야함
+      battleQueue = battleQueue.filter((crew) => crew === currentCrew)
+    })
+
     socket.on('crewJoin', ({ domain }) => {
       //크루 매칭 수행
       if (domain in matchingQueue) {
@@ -45,7 +60,7 @@ const socketListening = (io) => {
           const roomId = uuidv4()
           users.map((user) => {
             user.join(roomId)
-            console.log(`${user.id} 를 ${roomId}로 이동`)
+            console.log(`[${user.id}] 를 [${roomId}]로 이동`)
           })
 
           const currentRoom = {
@@ -56,7 +71,7 @@ const socketListening = (io) => {
 
           io.to(roomId).emit('matching', {
             roomId: roomId,
-            msg: '매칭이 완료되었습니다.',
+            msg: '크루 매칭이 완료되었습니다.',
             //...크루매칭 관련 정보들
           })
           crewList.push(currentRoom)
@@ -76,7 +91,8 @@ const socketListening = (io) => {
             //매칭 가능한 크루가 존재하지 않음
             battleQueue.push(currentRoom)
             console.log(`${currentRoom.roomId} 배틀큐에 푸시`)
-            console.log('현재 배틀큐 목록 : ', battleQueue)
+            const waitingCampus = battleQueue.map((campus) => campus.domain)
+            console.log('현재 배틀큐 목록 : ', waitingCampus)
             return
           }
 
