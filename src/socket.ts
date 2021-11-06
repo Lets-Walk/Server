@@ -40,7 +40,9 @@ const socketListening = (io) => {
         user.leave(crewId)
       })
       //현재 배틀큐에 있는 룸 정보 없애야함
-      battleQueue = battleQueue.filter((crew) => crew === currentCrew)
+      battleQueue = battleQueue.filter((crew) => crew !== currentCrew)
+      const waitingCampus = battleQueue.map((campus) => campus.domain)
+      console.log('현재 배틀큐 목록 : ', waitingCampus)
     })
 
     socket.on('crewJoin', ({ domain }) => {
@@ -63,6 +65,8 @@ const socketListening = (io) => {
             console.log(`[${user.id}] 를 [${roomId}]로 이동`)
           })
 
+          console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
+
           const currentRoom = {
             roomId: roomId,
             domain: domain,
@@ -82,7 +86,6 @@ const socketListening = (io) => {
           for (let i = 0; i < battleQueue.length; i++) {
             if (currentRoom.domain !== battleQueue[i].domain) {
               anotherRoom = battleQueue[i]
-
               break
             }
           }
