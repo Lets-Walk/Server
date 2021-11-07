@@ -11,10 +11,11 @@ const socketListening = (io) => {
   io.on('connection', (socket) => {
     const date = moment(new Date()).format('HH:mm:ss')
     const id = socket.id
-    console.log(`[${date}] connection id : ${id}`)
+    // console.log(`[${date}] connection id : ${id}`)
+    console.log(`✨[connect] socket id : ${id} | ${date}`)
 
     socket.on('disconnect', () => {
-      console.log(`${socket.id} disconnecting`)
+      console.log(`💥[disconnect] socket id : ${id} | ${date}`)
     })
 
     socket.emit('connection')
@@ -22,7 +23,7 @@ const socketListening = (io) => {
     socket.on('crewLeave', ({ domain, socketId }) => {
       //매칭대기열 취소
       matchingQueue[domain] = matchingQueue[domain].filter(
-        (soc) => soc.id !== socketId,
+        (user) => user.socket.id !== socketId,
       )
       console.log(`[${socketId}] 를 [${domain}] 매칭 대기열에서 삭제`)
       console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
@@ -35,9 +36,10 @@ const socketListening = (io) => {
       socket.broadcast.emit('battleLeave')
       const currentCrew = battleQueue.find((crew) => crew.roomId === crewId)
       if (!currentCrew) return
+      console.log(currentCrew)
       currentCrew.users.map((user) => {
-        console.log(`${user.id} 가 ${crewId}룸에서 나감.`)
-        user.leave(crewId)
+        console.log(`${user.socket.id} 가 ${crewId}룸에서 나감.`)
+        user.socket.leave(crewId)
       })
       //현재 배틀큐에 있는 룸 정보 없애야함
       battleQueue = battleQueue.filter((crew) => crew !== currentCrew)
@@ -45,12 +47,18 @@ const socketListening = (io) => {
       console.log('현재 배틀큐 목록 : ', waitingCampus)
     })
 
-    socket.on('crewJoin', ({ domain }) => {
+    socket.on('crewJoin', ({ domain, id: userId, nickname, profileUrl }) => {
       //크루 매칭 수행
+      const userInfo = {
+        userId,
+        nickname,
+        profileUrl,
+        socket,
+      }
       if (domain in matchingQueue) {
         //이미 매칭큐가 존재할 때
-        matchingQueue[domain].push(socket)
-        console.log(`[${socket.id}] 를 [${domain}] 매칭 대기열에 추가`)
+        matchingQueue[domain].push(userInfo)
+        console.log(`[${id}] 를 [${domain}] 매칭 대기열에 추가`)
         console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
         //CREW_SIZE를 만족하는지 확인
         if (matchingQueue[domain].length >= CREW_SIZE) {
@@ -61,10 +69,9 @@ const socketListening = (io) => {
           //Room으로 이동
           const roomId = uuidv4()
           users.map((user) => {
-            user.join(roomId)
-            console.log(`[${user.id}] 를 [${roomId}]로 이동`)
+            user.socket.join(roomId)
+            console.log(`[${user.socket.id}] 를 [${roomId}]로 이동`)
           })
-
           console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
 
           const currentRoom = {
@@ -73,9 +80,15 @@ const socketListening = (io) => {
             users: users,
           }
 
+          const userList = users.map((user) => {
+            const { socket, ...newUser } = user
+            return newUser
+          })
+
           io.to(roomId).emit('matching', {
             roomId: roomId,
             msg: '크루 매칭이 완료되었습니다.',
+            users: userList,
             //...크루매칭 관련 정보들
           })
           crewList.push(currentRoom)
@@ -105,8 +118,8 @@ const socketListening = (io) => {
           const walkingRoomId = uuidv4()
           allUsers.map((user) => {
             //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
-            user.join(walkingRoomId)
-            console.log(`${user.id} 를 ${walkingRoomId}로 이동`)
+            user.socket.oin(walkingRoomId)
+            console.log(`${user.socket.id} 를 ${walkingRoomId}로 이동`)
           })
 
           battleQueue = battleQueue.filter((room) => room.id !== anotherRoom.id) //매칭된 크루 삭제
@@ -117,9 +130,9 @@ const socketListening = (io) => {
           })
         }
       } else {
-        matchingQueue[domain] = [socket]
+        matchingQueue[domain] = [userInfo]
         console.log(`[${domain}] 매칭 큐 생성`)
-        console.log(`[${socket.id}] 를 [${domain}] 매칭 대기열에 추가`)
+        console.log(`[${id}] 를 [${domain}] 매칭 대기열에 추가`)
         console.log(`[${domain}] Room Size : ${matchingQueue[domain].length}`)
       }
     })
