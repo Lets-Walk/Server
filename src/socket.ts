@@ -1,5 +1,4 @@
 import moment from 'moment'
-import { debugPort } from 'process'
 import { v4 as uuidv4 } from 'uuid'
 
 const socketListening = (io) => {
@@ -33,16 +32,15 @@ const socketListening = (io) => {
     socket.on('battleLeave', ({ crewId }) => {
       //배틀매칭 중 유저가 나감.
       //같은 크루원들의 매칭이 취소되어아함.
-      socket.broadcast.emit('battleLeave')
+      socket.broadcast.to(crewId).emit('battleLeave')
       const currentCrew = battleQueue.find((crew) => crew.roomId === crewId)
       if (!currentCrew) return
-      console.log(currentCrew)
       currentCrew.users.map((user) => {
         console.log(`${user.socket.id} 가 ${crewId}룸에서 나감.`)
         user.socket.leave(crewId)
       })
       //현재 배틀큐에 있는 룸 정보 없애야함
-      battleQueue = battleQueue.filter((crew) => crew !== currentCrew)
+      battleQueue = battleQueue.filter((crew) => crew != currentCrew)
       const waitingCampus = battleQueue.map((campus) => campus.domain)
       console.log('현재 배틀큐 목록 : ', waitingCampus)
     })
@@ -118,11 +116,14 @@ const socketListening = (io) => {
           const walkingRoomId = uuidv4()
           allUsers.map((user) => {
             //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
-            user.socket.oin(walkingRoomId)
+            user.socket.join(walkingRoomId)
             console.log(`${user.socket.id} 를 ${walkingRoomId}로 이동`)
           })
 
           battleQueue = battleQueue.filter((room) => room.id !== anotherRoom.id) //매칭된 크루 삭제
+
+          const waitingCampus = battleQueue.map((campus) => campus.domain)
+          console.log('현재 배틀큐 목록 : ', waitingCampus)
 
           io.to(walkingRoomId).emit('battleMatching', {
             walkingRoomId: walkingRoomId,
