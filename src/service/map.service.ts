@@ -36,32 +36,25 @@ class MapService {
 
   getMarkerList(lat: number, lng: number): serviceResult {
     //중심좌표를 기준으로 1.5km 경계값
-    const km = 1.5
-    const count = 50 //아이템 개수
-    const labCount = 3 //연구실 개수
+    const km = 2
+    const itemCount = 70 //아이템 개수
+    const jokerCount = Math.floor(Math.random() * 2) + 1 // 1 ~ 2 사이의 값
+    const totalCount = itemCount + jokerCount
     const minX = lat - 0.00953 * km
     const minY = lng - 0.01384 * km
     const maxX = lat + 0.00789 * km
     const maxY = lng + 0.00959 * km
 
-    const markerList = this.createMarkerList(
-      minX,
-      maxX,
-      minY,
-      maxY,
-      count + labCount,
-    )
+    const markerList = this.createMarkerList(minX, maxX, minY, maxY, totalCount)
 
-    const check: string[] = [] //중복된 연구실을 체크하기 위한 리스트
     markerList.forEach((marker, index) => {
-      if (index < labCount) {
-        let type
-        do {
-          type = this.getLabType()
-        } while (check.indexOf(type) != -1)
-        marker.type = type
-        check.push(type)
-      } else marker.type = this.getItemType()
+      if (index < jokerCount) {
+        //조커 처리
+        marker.type = 'Joker'
+        return
+      }
+      const pattern = this.getPattern()
+      marker.type = this.getItemType(pattern)
     })
 
     return {
@@ -73,51 +66,55 @@ class MapService {
     }
   }
 
-  getLabType(): string {
-    //각 연구실 16.666% 확률
-
+  getPattern(): string {
     const num = Math.random()
-    const percent = 0.16666
-    let type
-    if (num < percent) type = '공과'
-    else if (num < percent * 2) type = '자연과학'
-    else if (num < percent * 3) type = '인문'
-    else if (num < percent * 4) type = '경영'
-    else if (num < percent * 5) type = '약학'
-    else if (num < 1) type = '의과'
+    let pattern
 
-    return type
+    if (num < 0.25) {
+      pattern = 'Heart'
+    } else if (num < 0.5) {
+      pattern = 'Clover'
+    } else if (num < 0.75) {
+      pattern = 'Spade'
+    } else {
+      pattern = 'Diamond'
+    }
+
+    return pattern
   }
 
-  getItemType(): string {
-    const num = Math.random()
-
+  getItemType(pattern: string): string {
     /*
-    아이템 확률
-    연필 : 28%
-    컴퓨터 : 12%
-    현미경 : 12%
-    책 : 12%
-    계산기 : 12%
-    청진기 : 12%
-    약품 : 12%
-     */
+      A~K 까지 총 12개의 아이템을 각각 8.3333% 확률로 리턴
+    */
+    const num = Math.random()
+    const p = 0.08333333333333333
 
     let type
-    if (num < 0.28) {
-      type = 'Pencil'
-    } else if (num < 0.4) {
-      type = 'Computer'
-    } else if (num < 0.52) {
-      type = 'Microscope'
-    } else if (num < 0.64) {
-      type = 'Book'
-    } else if (num < 0.76) {
-      type = 'Calculator'
-    } else if (num < 0.88) {
-      type = 'Pill'
-    } else if (num < 1) {
-      type = 'Stethoscope'
+    if (num < p) {
+      type = pattern + 'A'
+    } else if (num < p * 2) {
+      type = pattern + '2'
+    } else if (num < p * 3) {
+      type = pattern + '3'
+    } else if (num < p * 4) {
+      type = pattern + '4'
+    } else if (num < p * 5) {
+      type = pattern + '5'
+    } else if (num < p * 6) {
+      type = pattern + '6'
+    } else if (num < p * 7) {
+      type = pattern + '7'
+    } else if (num < p * 8) {
+      type = pattern + '8'
+    } else if (num < p * 9) {
+      type = pattern + '9'
+    } else if (num < p * 10) {
+      type = pattern + 'J'
+    } else if (num < p * 11) {
+      type = pattern + 'Q'
+    } else {
+      type = pattern + 'K'
     }
 
     return type
