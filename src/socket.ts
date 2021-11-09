@@ -1,4 +1,3 @@
-import { connect } from 'http2'
 import moment from 'moment'
 import { Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
@@ -59,21 +58,9 @@ const socketListening = (io: Socket) => {
         })
 
         const anotherRoom = findOpponent(currentRoom)
-        if (!anotherRoom) return // 상대 크루 없으면 배틀매칭 진햊하지 않고 리턴.
+        if (!anotherRoom) return // 상대 크루 없으면 배틀매칭 진행하지 않고 리턴.
 
-        console.log('Battle Matching Success')
-        //배틀 매칭 로직
-        const allUsers = [...anotherRoom.users, ...currentRoom.users]
-        const battleRoomId = uuidv4()
-        allUsers.map((user) => {
-          //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
-          user.socket.join(battleRoomId)
-          console.log(`${user.socket.id} 를 ${battleRoomId}로 이동`)
-        })
-
-        battleQueue = battleQueue.filter(
-          (room) => room.roomId !== anotherRoom?.roomId,
-        ) //매칭된 크루 삭제
+        const battleRoomId = createBattleRoom(currentRoom, anotherRoom)
 
         printBattleQueue()
 
@@ -84,9 +71,9 @@ const socketListening = (io: Socket) => {
           return newUser
         })
 
+        //매칭완료된 유저들에게 매칭 정보 emit
         io.to(battleRoomId).emit('battleMatching', {
           battleRoomId: battleRoomId,
-          domains: [currentRoom.domain, anotherRoom.domain],
           allUsers: [
             { domain: currentRoom.domain, users: userList },
             { domain: anotherRoom.domain, users: anotherUsers },
@@ -165,6 +152,29 @@ const findOpponent = (currentRoom: crewRoomInfo) => {
 
   return anotherRoom
 }
+
+const createBattleRoom = (
+  currentRoom: crewRoomInfo,
+  anotherRoom: crewRoomInfo,
+): string => {
+  console.log('Battle Matching Success')
+  //배틀 매칭 로직
+  const allUsers: userInfo[] = [...anotherRoom.users, ...currentRoom.users]
+  const battleRoomId = uuidv4()
+  allUsers.map((user) => {
+    //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
+    user.socket.join(battleRoomId)
+    console.log(`${user.socket.id} 를 battleRoom : ${battleRoomId}로 이동`)
+  })
+
+  //매칭완료된 크루를 배틀큐에서 제거한다.
+  battleQueue = battleQueue.filter(
+    (room) => room.roomId !== anotherRoom?.roomId,
+  )
+
+  return battleRoomId
+}
+
 const printBattleQueue = (): void => {
   const waitingCampus = battleQueue.map((campus) => campus.domain)
   console.log('현재 배틀 큐 목록 : ', waitingCampus)
