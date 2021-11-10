@@ -104,16 +104,19 @@ const socketListening = (io: Socket) => {
       //전체 유저가 레디할 때 까지 대기
       if (readyCount[battleRoomId] !== CREW_SIZE * 2) return
 
-      //전체 유저가 레디상태가 되면 미션대기상태 시작
-      io.to(battleRoomId).emit('waitingMission')
-
       const MAX_COUNT = 10
       const SECOND = 1
       let cnt = 0
+
+      //전체 유저가 레디상태가 되면 미션대기상태 시작
+      io.to(battleRoomId).emit('waitingMission', { count: MAX_COUNT })
+
       const interval = setInterval(() => {
         if (cnt === MAX_COUNT) {
           clearInterval(interval)
           //미션 생성 및 시작
+          console.log('워킹모드가 시작되어야 한다.')
+          io.to(battleRoomId).emit('startWalkingMode')
         }
         io.to(battleRoomId).emit('missonCount', MAX_COUNT - cnt)
         cnt += 1
