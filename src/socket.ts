@@ -1,11 +1,18 @@
 import moment from 'moment'
 import { Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
-import { matchingQueue, crewRoomInfo, userInfo } from '../constants/interface'
+import {
+  matchingQueue,
+  crewRoomInfo,
+  userInfo,
+  readyCount,
+} from '../constants/interface'
+import userService from './service/user.service'
 
 const matchingQueue: matchingQueue = {}
 let battleQueue: crewRoomInfo[] = []
-const CREW_SIZE: number = 2
+const readyCount: readyCount = {}
+const CREW_SIZE: number = 1
 
 const socketListening = (io: Socket) => {
   io.on('connection', (socket: Socket) => {
@@ -71,6 +78,9 @@ const socketListening = (io: Socket) => {
           return newUser
         })
 
+        //서버에서는 현재 진행중인 워킹모드에 대한 데이터가 있어야함.
+        readyCount[battleRoomId] = 0
+
         //매칭완료된 유저들에게 매칭 정보 emit
         io.to(battleRoomId).emit('battleMatching', {
           battleRoomId: battleRoomId,
@@ -81,6 +91,33 @@ const socketListening = (io: Socket) => {
           msg: '배틀매칭이 완료되었습니다.',
         })
       }
+    })
+
+    //유저들의 WalkingMode 렌더링이 완료되었을 때 이벤트
+    socket.on('readyWalkingMode', (data) => {
+      const { battleRoomId } = data
+
+      readyCount[battleRoomId] += 1
+
+      console.log(`${socket.id} 워킹모드 준비 완료`)
+
+      //전체 유저가 레디할 때 까지 대기
+      if (readyCount[battleRoomId] !== CREW_SIZE * 2) return
+
+      //전체 유저가 레디상태가 되면 미션대기상태 시작
+      io.to(battleRoomId).emit('waitingMission')
+
+      const MAX_COUNT = 10
+      const SECOND = 1
+      let cnt = 0
+      const interval = setInterval(() => {
+        if (cnt === MAX_COUNT) {
+          clearInterval(interval)
+          //미션 생성 및 시작
+        }
+        io.to(battleRoomId).emit('missonCount', MAX_COUNT - cnt)
+        cnt += 1
+      }, 1000 * SECOND)
     })
 
     socket.on('crewLeave', ({ domain, socketId: userSocketId }) => {

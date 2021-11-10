@@ -31,3 +31,7 @@ export interface crewRoomInfo {
 export interface matchingQueue {
   [domain: string]: userInfo[]
 }
+
+export interface readyCount {
+  [battleRoomId: string]: number
+}
