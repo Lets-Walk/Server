@@ -7,12 +7,15 @@ import {
   userInfo,
   readyCount,
   campusInfo,
+  battleInfo,
+  inProgressBattle,
 } from '../constants/interface'
 import MISSION_LIST from '../constants/battleMissions'
 
 const matchingQueue: matchingQueue = {}
 let battleQueue: crewRoomInfo[] = []
 const readyCount: readyCount = {}
+const inProgressBattle: inProgressBattle = {}
 const CREW_SIZE: number = 1
 const INIT_LIFE = 3
 
@@ -55,7 +58,7 @@ const socketListening = (io: Socket) => {
 
       if (matchingQueue[domain].length >= CREW_SIZE) {
         //큐에서 빼서 하나의 크루 룸으로 만들어야 함.
-        const currentRoom = createRoom(campus)
+        const currentRoom: crewRoomInfo = createRoom(campus)
 
         //매칭이 완료된 client에게 매칭 정보를 알려줄 때, socket정보는 제외하고 보내기 위함.
         const userList = currentRoom.users.map((user) => {
@@ -69,7 +72,7 @@ const socketListening = (io: Socket) => {
           users: userList,
         })
 
-        const anotherRoom = findOpponent(currentRoom)
+        const anotherRoom: crewRoomInfo | null = findOpponent(currentRoom)
         if (!anotherRoom) return // 상대 크루 없으면 배틀매칭 진행하지 않고 리턴.
 
         const battleRoomId = createBattleRoom(currentRoom, anotherRoom)
@@ -83,8 +86,15 @@ const socketListening = (io: Socket) => {
           return newUser
         })
 
-        //서버에서는 현재 진행중인 워킹모드에 대한 데이터가 있어야함.
         readyCount[battleRoomId] = 0
+
+        //서버에서는 현재 진행중인 워킹모드에 대한 데이터가 있어야함.
+        const currentBattle: battleInfo = {
+          battleRoomId: battleRoomId,
+          crewInfo: [currentRoom, anotherRoom],
+        }
+
+        inProgressBattle[battleRoomId] = currentBattle
 
         //매칭완료된 유저들에게 매칭 정보 emit
         io.to(battleRoomId).emit('battleMatching', {
@@ -192,7 +202,7 @@ const createRoom = (campus: campusInfo): crewRoomInfo => {
   return crewRoom
 }
 
-const findOpponent = (currentRoom: crewRoomInfo) => {
+const findOpponent = (currentRoom: crewRoomInfo): crewRoomInfo | null => {
   let anotherRoom: crewRoomInfo | null = null
   //배틀매칭 큐 확인
   for (let i = 0; i < battleQueue.length; i++) {

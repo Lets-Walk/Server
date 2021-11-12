@@ -37,6 +37,15 @@ export interface crewRoomInfo {
   users: userInfo[]
 }
 
+export interface battleInfo {
+  battleRoomId: string
+  crewInfo: crewRoomInfo[]
+}
+
+export interface inProgressBattle {
+  [battleRoomId: string]: battleInfo
+}
+
 export interface matchingQueue {
   [domain: string]: userInfo[]
 }
