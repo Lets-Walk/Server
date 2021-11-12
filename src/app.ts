@@ -23,6 +23,7 @@ class App {
     this.app.use(express.json())
     this.app.use(express.urlencoded({ extended: false }))
     this.app.use(morgan('tiny'))
+    this.app.use('/static', express.static('public'))
   }
 
   getRouting() {
