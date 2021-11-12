@@ -6,14 +6,15 @@ import {
   crewRoomInfo,
   userInfo,
   readyCount,
+  campusInfo,
 } from '../constants/interface'
 import MISSION_LIST from '../constants/battleMissions'
-import userService from './service/user.service'
 
 const matchingQueue: matchingQueue = {}
 let battleQueue: crewRoomInfo[] = []
 const readyCount: readyCount = {}
 const CREW_SIZE: number = 1
+const INIT_LIFE = 3
 
 const socketListening = (io: Socket) => {
   io.on('connection', (socket: Socket) => {
@@ -26,13 +27,16 @@ const socketListening = (io: Socket) => {
       console.log(`💥[disconnect] socket id : ${socketId} | ${date}`)
     })
 
-    socket.on('crewJoin', ({ domain, id: userId, nickname, profileUrl }) => {
+    socket.on('crewJoin', ({ id: userId, nickname, profileUrl, campus }) => {
       const userInfo: userInfo = {
         userId,
         nickname,
         profileUrl,
+        campus,
         socket,
       }
+
+      const { domain } = campus //캠퍼스 도메인
 
       if (!(domain in matchingQueue)) {
         //유저의 학교가 매칭큐에 존재하지 않을 때 매칭큐에 도메인을 추가한다.
@@ -51,7 +55,7 @@ const socketListening = (io: Socket) => {
 
       if (matchingQueue[domain].length >= CREW_SIZE) {
         //큐에서 빼서 하나의 크루 룸으로 만들어야 함.
-        const currentRoom = createRoom(domain)
+        const currentRoom = createRoom(campus)
 
         //매칭이 완료된 client에게 매칭 정보를 알려줄 때, socket정보는 제외하고 보내기 위함.
         const userList = currentRoom.users.map((user) => {
@@ -85,9 +89,17 @@ const socketListening = (io: Socket) => {
         //매칭완료된 유저들에게 매칭 정보 emit
         io.to(battleRoomId).emit('battleMatching', {
           battleRoomId: battleRoomId,
-          allUsers: [
-            { domain: currentRoom.domain, users: userList },
-            { domain: anotherRoom.domain, users: anotherUsers },
+          crewInfo: [
+            {
+              campus: currentRoom.campus,
+              life: currentRoom.life,
+              users: userList,
+            },
+            {
+              campus: anotherRoom.campus,
+              life: anotherRoom.life,
+              users: anotherUsers,
+            },
           ],
           msg: '배틀매칭이 완료되었습니다.',
         })
@@ -156,7 +168,9 @@ const socketListening = (io: Socket) => {
   console.log('Socket running')
 }
 
-const createRoom = (domain: string): crewRoomInfo => {
+const createRoom = (campus: campusInfo): crewRoomInfo => {
+  const { domain } = campus
+
   const users = matchingQueue[domain].slice(0, CREW_SIZE)
   matchingQueue[domain].splice(0, CREW_SIZE) //삭제
 
@@ -170,8 +184,9 @@ const createRoom = (domain: string): crewRoomInfo => {
 
   const crewRoom: crewRoomInfo = {
     roomId: roomId,
-    domain: domain,
+    campus: campus,
     users: users,
+    life: INIT_LIFE,
   }
 
   return crewRoom
@@ -181,7 +196,7 @@ const findOpponent = (currentRoom: crewRoomInfo) => {
   let anotherRoom: crewRoomInfo | null = null
   //배틀매칭 큐 확인
   for (let i = 0; i < battleQueue.length; i++) {
-    if (currentRoom.domain !== battleQueue[i].domain) {
+    if (currentRoom.campus.domain !== battleQueue[i].campus.domain) {
       anotherRoom = battleQueue[i]
       break
     }
@@ -226,7 +241,7 @@ const createMission = () => {
 }
 
 const printBattleQueue = (): void => {
-  const waitingCampus = battleQueue.map((campus) => campus.domain)
+  const waitingCampus = battleQueue.map((crew) => crew.campus.domain)
   console.log('현재 배틀 큐 목록 : ', waitingCampus)
 }
 

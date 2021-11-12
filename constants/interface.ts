@@ -19,12 +19,21 @@ export interface userInfo {
   userId: string
   nickname: string
   profileUrl: string
+  campus: campusInfo
   socket: Socket
+}
+
+export interface campusInfo {
+  id: number
+  name: string
+  image: string
+  domain: string
 }
 
 export interface crewRoomInfo {
   roomId: string
-  domain: string
+  campus: campusInfo
+  life: number
   users: userInfo[]
 }
 
