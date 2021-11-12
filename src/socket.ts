@@ -7,6 +7,7 @@ import {
   userInfo,
   readyCount,
 } from '../constants/interface'
+import MISSON_LIST from '../constants/battleMissions'
 import userService from './service/user.service'
 
 const matchingQueue: matchingQueue = {}
@@ -115,8 +116,11 @@ const socketListening = (io: Socket) => {
         if (cnt === MAX_COUNT) {
           clearInterval(interval)
           //미션 생성 및 시작
-          console.log('워킹모드가 시작되어야 한다.')
-          io.to(battleRoomId).emit('startWalkingMode')
+          console.log('워킹모드 시작')
+
+          const misson = createMisson()
+          //미션 생성
+          io.to(battleRoomId).emit('startWalkingMode', { misson })
         }
         io.to(battleRoomId).emit('missonCount', MAX_COUNT - cnt)
         cnt += 1
@@ -213,6 +217,12 @@ const createBattleRoom = (
   )
 
   return battleRoomId
+}
+
+const createMisson = () => {
+  const idx = Math.floor(Math.random() * MISSON_LIST.length)
+
+  return MISSON_LIST[idx]
 }
 
 const printBattleQueue = (): void => {
