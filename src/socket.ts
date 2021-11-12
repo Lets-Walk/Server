@@ -7,7 +7,7 @@ import {
   userInfo,
   readyCount,
 } from '../constants/interface'
-import MISSON_LIST from '../constants/battleMissions'
+import MISSION_LIST from '../constants/battleMissions'
 import userService from './service/user.service'
 
 const matchingQueue: matchingQueue = {}
@@ -118,11 +118,11 @@ const socketListening = (io: Socket) => {
           //미션 생성 및 시작
           console.log('워킹모드 시작')
 
-          const misson = createMisson()
+          const mission = createMission()
           //미션 생성
-          io.to(battleRoomId).emit('startWalkingMode', { misson })
+          io.to(battleRoomId).emit('startWalkingMode', { mission })
         }
-        io.to(battleRoomId).emit('missonCount', MAX_COUNT - cnt)
+        io.to(battleRoomId).emit('missionCount', MAX_COUNT - cnt)
         cnt += 1
       }, 1000 * SECOND)
     })
@@ -219,10 +219,10 @@ const createBattleRoom = (
   return battleRoomId
 }
 
-const createMisson = () => {
-  const idx = Math.floor(Math.random() * MISSON_LIST.length)
+const createMission = () => {
+  const idx = Math.floor(Math.random() * MISSION_LIST.length)
 
-  return MISSON_LIST[idx]
+  return MISSION_LIST[idx]
 }
 
 const printBattleQueue = (): void => {
