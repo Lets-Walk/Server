@@ -149,6 +149,22 @@ const socketListening = (io: Socket) => {
       }, 1000 * SECOND)
     })
 
+    //클라이언트로 ontainItem 이벤트를 받으면 누군가 아이템을 획득했다는 것임.
+    //크루id를 이용해 크루원에게는 가방 동기화 이벤트를 발생시키고
+    //배틀룸id를 이용해 워킹모드 유저 전체에게 획득 로그를 출력해야 한다.
+    socket.on('obtainItem', ({ crewId, battleRoomId, userInfo, inventory }) => {
+      console.log('obtainItem', inventory)
+
+      // socket.broadcast
+      //   .to(battleRoomId)
+      //   .emit('obtainItem', `[크류메세지]${userInfo.nickname}가 아이템획득`)
+
+      io.to(battleRoomId).emit(
+        'obtainItem',
+        `[전체메세지]${userInfo.nickname}이 아이템을 획득함`,
+      )
+    })
+
     socket.on('crewLeave', ({ domain, socketId: userSocketId }) => {
       //매칭대기열 취소
       matchingQueue[domain] = matchingQueue[domain].filter(
