@@ -11,6 +11,7 @@ import {
   inProgressBattle,
 } from '../constants/interface'
 import MISSION_LIST from '../constants/battleMissions'
+import isMissionSuccess from './utils/missionValidation'
 
 const matchingQueue: matchingQueue = {}
 let battleQueue: crewRoomInfo[] = []
@@ -127,7 +128,7 @@ const socketListening = (io: Socket) => {
       //전체 유저가 레디할 때 까지 대기
       if (readyCount[battleRoomId] !== CREW_SIZE * 2) return
 
-      const MAX_COUNT = 10
+      const MAX_COUNT = 5
       const SECOND = 1
       let cnt = 0
 
@@ -163,6 +164,43 @@ const socketListening = (io: Socket) => {
       // socket.broadcast.to(crewId).emit('inventorySync', { inventory })
       io.to(crewId).emit('inventorySync', { newInventory })
     })
+
+    //미션 성공 검증
+    socket.on(
+      'missionValidation',
+      ({ mission, newInventory, battleRoomId, crewInfo, campusName }) => {
+        //미션타입과 인벤토리값을 이용하여 미션 성공여부를 검증.
+        const isSuccess: boolean = isMissionSuccess(mission, newInventory)
+        // const isSuccess = true //for test
+
+        //미션에 성공하지 못했음
+        if (!isSuccess) return
+
+        //미션에 성공했으면 전체에게 미션성공을 알리는 이벤트를 발생시킴
+        //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
+        let isEnd = false
+        crewInfo.map((crew) => {
+          if (crew.campus.name !== campusName) {
+            crew.life -= 1
+            if (crew.life === 0) isEnd = true
+          }
+        })
+        io.to(battleRoomId).emit('missionSuccess', {
+          crewInfo,
+          mission,
+          campusName,
+        })
+        if (isEnd) {
+          //LIFE가 0이 되어서 워킹모드가 종료될 때의 처리
+          return
+        }
+
+        //미션성공을 완료하면, 상대크루의 LIFE를 깎아야함. 이는 crewInfo의 state를 변경시키는걸로 처리.
+        //미션이 끝나면, 완전 워킹모드가 끝났는지 확인한 후에 다음 미션을 대기해야함.
+        //다음 미션을 대기하면서 맵에 있는 마커와 인벤토리를 초기화 시킴
+        //미션이 나오면 맵에 마커를 뿌리고, 다시 미션 시작
+      },
+    )
 
     socket.on('crewLeave', ({ domain, socketId: userSocketId }) => {
       //매칭대기열 취소
