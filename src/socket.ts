@@ -181,8 +181,10 @@ const socketListening = (io: Socket) => {
         //미션에 성공했으면 전체에게 미션성공을 알리는 이벤트를 발생시킴
         //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
         let isEnd = false
+        let defeatCampusName = ''
         crewInfo.map((crew) => {
           if (crew.campus.name !== campusName) {
+            defeatCampusName = crew.campus.name
             crew.life -= 1
             if (crew.life === 0) isEnd = true
           }
@@ -195,7 +197,9 @@ const socketListening = (io: Socket) => {
         })
         if (isEnd) {
           //LIFE가 0이 되어서 워킹모드가 종료될 때의 처리
-          console.log(`${campusName}의 LIFE가 0이 되어 워킹모드를 종료해야함.`)
+          console.log(
+            `${defeatCampusName}의 LIFE가 0이 되어 워킹모드를 종료해야함.`,
+          )
           return
         }
 
