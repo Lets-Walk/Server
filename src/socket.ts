@@ -17,8 +17,11 @@ const matchingQueue: matchingQueue = {}
 let battleQueue: crewRoomInfo[] = []
 const readyCount: readyCount = {}
 const inProgressBattle: inProgressBattle = {}
+const waitingBattle = {}
 const CREW_SIZE: number = 2
 const INIT_LIFE = 3
+const MAX_COUNT = 5
+const SECOND = 1
 
 const socketListening = (io: Socket) => {
   io.on('connection', (socket: Socket) => {
@@ -118,32 +121,31 @@ const socketListening = (io: Socket) => {
     })
 
     //유저들의 WalkingMode 렌더링이 완료되었을 때 이벤트
-    socket.on('readyWalkingMode', (data) => {
-      const { battleRoomId } = data
+    socket.on('readyWalkingMode', ({ battleRoomId }) => {
+      // const { battleRoomId } = data
 
-      readyCount[battleRoomId] += 1
+      // readyCount[battleRoomId] += 1
 
-      console.log(`${socket.id} 워킹모드 준비 완료`)
+      // console.log(`${socket.id} 워킹모드 준비 완료`)
 
-      //전체 유저가 레디할 때 까지 대기
-      if (readyCount[battleRoomId] !== CREW_SIZE * 2) return
-
-      const MAX_COUNT = 5
-      const SECOND = 1
-      let cnt = 0
+      // //전체 유저가 레디할 때 까지 대기
+      // if (readyCount[battleRoomId] !== CREW_SIZE * 2) return
 
       //전체 유저가 레디상태가 되면 미션대기상태 시작
+      if (waitingBattle[battleRoomId]) return
+      waitingBattle[battleRoomId] = true
       io.to(battleRoomId).emit('waitingMission', { count: MAX_COUNT })
-
+      let cnt = 0
       const interval = setInterval(() => {
         if (cnt === MAX_COUNT) {
           clearInterval(interval)
           //미션 생성 및 시작
-          console.log('워킹모드 시작')
+          console.log('미션 시작')
 
           const mission = createMission()
           //미션 생성
           io.to(battleRoomId).emit('startWalkingMode', { mission })
+          waitingBattle[battleRoomId] = false
         }
         io.to(battleRoomId).emit('missionCount', MAX_COUNT - cnt)
         cnt += 1
@@ -189,14 +191,16 @@ const socketListening = (io: Socket) => {
           crewInfo,
           mission,
           campusName,
+          isEnd,
         })
         if (isEnd) {
           //LIFE가 0이 되어서 워킹모드가 종료될 때의 처리
+          console.log(`${campusName}의 LIFE가 0이 되어 워킹모드를 종료해야함.`)
           return
         }
 
-        //미션성공을 완료하면, 상대크루의 LIFE를 깎아야함. 이는 crewInfo의 state를 변경시키는걸로 처리.
         //미션이 끝나면, 완전 워킹모드가 끝났는지 확인한 후에 다음 미션을 대기해야함.
+        //
         //다음 미션을 대기하면서 맵에 있는 마커와 인벤토리를 초기화 시킴
         //미션이 나오면 맵에 마커를 뿌리고, 다시 미션 시작
       },

@@ -1,4 +1,4 @@
-function oxFlush(inventory) {
+const oxFlush = (inventory) => {
   var shapecount = new Array(2)
   for (var i = 0; i < 2; i++) {
     shapecount[i] = new Array(4)
