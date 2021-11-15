@@ -30,4 +30,5 @@ services:
       - ./src:/app/src
       - ./models:/app/models
       - ./constants:/app/constants
+      - ./public:/app/public
       # - /app/node_modules
