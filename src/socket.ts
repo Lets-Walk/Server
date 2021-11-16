@@ -210,7 +210,8 @@ const socketListening = (io: Socket) => {
       },
     )
 
-    socket.on('crewLeave', ({ domain, socketId: userSocketId }) => {
+    socket.on('crewLeave', ({ campus, socketId: userSocketId }) => {
+      const { domain } = campus
       //매칭대기열 취소
       matchingQueue[domain] = matchingQueue[domain].filter(
         (user) => user.socket.id !== userSocketId,
