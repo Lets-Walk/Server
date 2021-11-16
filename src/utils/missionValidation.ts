@@ -106,10 +106,11 @@ function isMissionSuccess(type, inventory): boolean {
     case 'Fullhouse':
       if (
         paircount(1, 3, inventory) == true &&
-        paircount(1, 2, inventory) == true
+        paircount(2, 2, inventory) == true
       ) {
         TF = true
       }
+      break
     case 'Straight':
       TF = oxStraignt(inventory)
       break
