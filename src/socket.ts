@@ -194,7 +194,7 @@ const socketListening = (io: Socket) => {
           if (seconds <= 0) {
             //타이머 끝
             clearInterval(interval)
-            io.to(effectedCrew.roomId).emit('jokerMissionEnd', {
+            io.to(battleRoomId).emit('jokerMissionEnd', {
               type,
               effectedCampus: effectedCrew.campus.name,
             })
