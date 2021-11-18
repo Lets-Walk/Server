@@ -11,6 +11,7 @@ import {
   inProgressBattle,
 } from '../constants/interface'
 import MISSION_LIST from '../constants/battleMissions'
+import JOKER_MISSION_LIST from '../constants/jokerMissions'
 import isMissionSuccess from './utils/missionValidation'
 
 const matchingQueue: matchingQueue = {}
@@ -18,7 +19,7 @@ let battleQueue: crewRoomInfo[] = []
 const readyCount: readyCount = {}
 const inProgressBattle: inProgressBattle = {}
 const waitingBattle = {}
-const CREW_SIZE: number = 2
+const CREW_SIZE: number = 1
 const INIT_LIFE = 3
 const MAX_COUNT = 5
 const SECOND = 1
@@ -105,11 +106,13 @@ const socketListening = (io: Socket) => {
           battleRoomId: battleRoomId,
           crewInfo: [
             {
+              roomId: currentRoom.roomId,
               campus: currentRoom.campus,
               life: currentRoom.life,
               users: userList,
             },
             {
+              roomId: anotherRoom.roomId,
               campus: anotherRoom.campus,
               life: anotherRoom.life,
               users: anotherUsers,
@@ -160,6 +163,53 @@ const socketListening = (io: Socket) => {
       })
     })
 
+    //조커아이템 획득
+    socket.on('jokerGain', ({ crewId, battleRoomId, crewInfo, campusName }) => {
+      console.log(crewInfo)
+
+      //5초간 대기 후 조커 미션 전달
+      setTimeout(() => {
+        const jokerMission = createJokerMission()
+        const obtainCampus = campusName
+
+        //미션 종류에 따라 달라질 수 있음.
+        let effectedCrew
+        crewInfo.map((crew) => {
+          if (crew.campus.name !== campusName) effectedCrew = crew
+        })
+
+        const { type } = jokerMission
+        let { seconds } = jokerMission
+
+        //조커 미션 전달
+        io.to(battleRoomId).emit('jokerMission', {
+          type: type,
+          seconds: seconds,
+          obtainCampus: obtainCampus,
+          effectedCampus: effectedCrew.campus.name,
+        })
+
+        //조커 타이머 시작
+        const interval = setInterval(() => {
+          if (seconds <= 0) {
+            //타이머 끝
+            clearInterval(interval)
+            io.to(effectedCrew.roomId).emit('jokerMissionEnd', {
+              type,
+              effectedCampus: effectedCrew.campus.name,
+            })
+            return
+          }
+          io.to(effectedCrew.roomId).emit('jokerMissionCount', {
+            count: seconds,
+          })
+          seconds -= 1
+        }, 100)
+
+        //끝나면 socket.emit('jokerMissionEnd')
+      }, 5000)
+    })
+
     //크루원간 인벤토리 동기화
     socket.on('inventorySync', ({ crewId, newInventory }) => {
       console.log('inventorySync')
@@ -189,24 +239,13 @@ const socketListening = (io: Socket) => {
             if (crew.life === 0) isEnd = true
           }
         })
+
         io.to(battleRoomId).emit('missionSuccess', {
           crewInfo,
           mission,
           campusName,
           isEnd,
         })
-        if (isEnd) {
-          //LIFE가 0이 되어서 워킹모드가 종료될 때의 처리
-          console.log(
-            `${defeatCampusName}의 LIFE가 0이 되어 워킹모드를 종료해야함.`,
-          )
-          return
-        }
-
-        //미션이 끝나면, 완전 워킹모드가 끝났는지 확인한 후에 다음 미션을 대기해야함.
-        //
-        //다음 미션을 대기하면서 맵에 있는 마커와 인벤토리를 초기화 시킴
-        //미션이 나오면 맵에 마커를 뿌리고, 다시 미션 시작
       },
     )
 
@@ -310,6 +349,12 @@ const createMission = () => {
   const idx = Math.floor(Math.random() * MISSION_LIST.length)
 
   return MISSION_LIST[idx]
+}
+
+const createJokerMission = () => {
+  const idx = Math.floor(Math.random() * JOKER_MISSION_LIST.length)
+
+  return JOKER_MISSION_LIST[idx]
 }
 
 const printBattleQueue = (): void => {
