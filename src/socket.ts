@@ -19,6 +19,7 @@ let battleQueue: crewRoomInfo[] = []
 const readyCount: readyCount = {}
 const inProgressBattle: inProgressBattle = {}
 const waitingBattle = {}
+const currentInterval = {}
 const CREW_SIZE: number = 2
 const INIT_LIFE = 3
 const MAX_COUNT = 5
@@ -165,8 +166,6 @@ const socketListening = (io: Socket) => {
 
     //조커아이템 획득
     socket.on('jokerGain', ({ crewId, battleRoomId, crewInfo, campusName }) => {
-      console.log(crewInfo)
-
       //5초간 대기 후 조커 미션 전달
       setTimeout(() => {
         const jokerMission = createJokerMission()
@@ -206,7 +205,7 @@ const socketListening = (io: Socket) => {
           seconds -= 1
         }, 1000)
 
-        //끝나면 socket.emit('jokerMissionEnd')
+        currentInterval[crewId] = interval
       }, 5000)
     })
 
@@ -220,7 +219,14 @@ const socketListening = (io: Socket) => {
     //미션 성공 검증
     socket.on(
       'missionValidation',
-      ({ mission, newInventory, battleRoomId, crewInfo, campusName }) => {
+      ({
+        mission,
+        newInventory,
+        battleRoomId,
+        crewInfo,
+        campusName,
+        crewId,
+      }) => {
         //미션타입과 인벤토리값을 이용하여 미션 성공여부를 검증.
         const isSuccess: boolean = isMissionSuccess(mission, newInventory)
         // const isSuccess = true //for test
@@ -231,10 +237,8 @@ const socketListening = (io: Socket) => {
         //미션에 성공했으면 전체에게 미션성공을 알리는 이벤트를 발생시킴
         //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
         let isEnd = false
-        let defeatCampusName = ''
         crewInfo.map((crew) => {
           if (crew.campus.name !== campusName) {
-            defeatCampusName = crew.campus.name
             crew.life -= 1
             if (crew.life === 0) isEnd = true
           }
@@ -246,6 +250,14 @@ const socketListening = (io: Socket) => {
           campusName,
           isEnd,
         })
+
+        //조커 미션 카운트 interval 제거
+        const interval = currentInterval[crewId]
+        if (interval) {
+          console.log('interval 제거')
+          clearInterval(interval)
+          currentInterval[crewId] = null
+        }
       },
     )
 
