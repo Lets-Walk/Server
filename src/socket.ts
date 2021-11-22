@@ -19,7 +19,7 @@ let battleQueue: crewRoomInfo[] = []
 const readyCount: readyCount = {}
 const inProgressBattle: inProgressBattle = {}
 const waitingBattle = {}
-const CREW_SIZE: number = 1
+const CREW_SIZE: number = 2
 const INIT_LIFE = 3
 const MAX_COUNT = 5
 const SECOND = 1
@@ -204,7 +204,7 @@ const socketListening = (io: Socket) => {
             count: seconds,
           })
           seconds -= 1
-        }, 100)
+        }, 1000)
 
         //끝나면 socket.emit('jokerMissionEnd')
       }, 5000)
@@ -273,6 +273,11 @@ const socketListening = (io: Socket) => {
       //현재 배틀큐에 있는 룸 정보 없애야함
       battleQueue = battleQueue.filter((crew) => crew != currentCrew)
       printBattleQueue()
+    })
+
+    socket.on('sendChat', ({ messages, crewId, battleRoomId }) => {
+      // console.log(messages)
+      io.to(crewId).emit('receiveChat', { messages })
     })
   })
 
