@@ -297,6 +297,19 @@ const socketListening = (io: Socket) => {
       // console.log(messages)
       io.to(crewId).emit('receiveChat', { messages })
     })
+
+    socket.on('sendItems', ({ battleRoomId, crewId, items, userId }) => {
+      const currentBattle = inProgressBattle[battleRoomId]
+      const currentCrew = currentBattle.crewInfo.find(
+        (crew) => crew.roomId === crewId,
+      )
+      const currentUser = currentCrew?.users.find(
+        (user) => user.userId === userId,
+      )
+      if (currentUser) {
+        currentUser.items = items
+      }
+    })
   })
 
   console.log('Socket running')
