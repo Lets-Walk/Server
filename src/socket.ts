@@ -5,7 +5,6 @@ import {
   matchingQueue,
   crewRoomInfo,
   userInfo,
-  readyCount,
   campusInfo,
   battleInfo,
   inProgressBattle,
@@ -14,16 +13,16 @@ import MISSION_LIST from '../constants/battleMissions'
 import JOKER_MISSION_LIST from '../constants/jokerMissions'
 import isMissionSuccess from './utils/missionValidation'
 
-const matchingQueue: matchingQueue = {}
-let battleQueue: crewRoomInfo[] = []
-const readyCount: readyCount = {}
-const inProgressBattle: inProgressBattle = {}
-const waitingBattle = {}
-const currentInterval = {}
-const CREW_SIZE: number = 2
-const INIT_LIFE = 3
-const MAX_COUNT = 5
-const SECOND = 1
+const matchingQueue: matchingQueue = {} //캠퍼스별 매칭 대기열
+let battleQueue: crewRoomInfo[] = [] //크루 배틀매칭 대기열
+const inProgressBattle: inProgressBattle = {} //현재 진행중인 워킹모드에 대한 정보
+const waitingBattle = {} //readyWalkingMode에서 이벤트를 한번만 발생시키기 위해 사용
+const currentInterval = {} //조커미션 카운트 interval
+
+const CREW_SIZE: number = 2 //크루 사이즈
+const INIT_LIFE = 3 //시작 LIFE
+const MAX_COUNT = 5 //미션 시작 전 카운트
+const SECOND = 1 // 1초
 
 const socketListening = (io: Socket) => {
   io.on('connection', (socket: Socket) => {
@@ -92,8 +91,6 @@ const socketListening = (io: Socket) => {
           return newUser
         })
 
-        readyCount[battleRoomId] = 0
-
         //서버에서는 현재 진행중인 워킹모드에 대한 데이터가 있어야함.
         const currentBattle: battleInfo = {
           battleRoomId: battleRoomId,
@@ -126,16 +123,6 @@ const socketListening = (io: Socket) => {
 
     //유저들의 WalkingMode 렌더링이 완료되었을 때 이벤트
     socket.on('readyWalkingMode', ({ battleRoomId }) => {
-      // const { battleRoomId } = data
-
-      // readyCount[battleRoomId] += 1
-
-      // console.log(`${socket.id} 워킹모드 준비 완료`)
-
-      // //전체 유저가 레디할 때 까지 대기
-      // if (readyCount[battleRoomId] !== CREW_SIZE * 2) return
-
-      //전체 유저가 레디상태가 되면 미션대기상태 시작
       if (waitingBattle[battleRoomId]) return
       waitingBattle[battleRoomId] = true
       io.to(battleRoomId).emit('waitingMission', { count: MAX_COUNT })
