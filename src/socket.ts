@@ -19,7 +19,7 @@ const inProgressBattle: inProgressBattle = {} //현재 진행중인 워킹모드
 const waitingBattle = {} //readyWalkingMode에서 이벤트를 한번만 발생시키기 위해 사용
 const currentInterval = {} //조커미션 카운트 interval
 
-const CREW_SIZE: number = 2 //크루 사이즈
+const CREW_SIZE: number = 1 //크루 사이즈
 const INIT_LIFE = 3 //시작 LIFE
 const MAX_COUNT = 5 //미션 시작 전 카운트
 const SECOND = 1 // 1초
@@ -67,7 +67,7 @@ const socketListening = (io: Socket) => {
 
         //매칭이 완료된 client에게 매칭 정보를 알려줄 때, socket정보는 제외하고 보내기 위함.
         const userList = currentRoom.users.map((user) => {
-          const { socket, ...newUser } = user
+          const { socket, items, ...newUser } = user
           return newUser
         })
 
@@ -87,7 +87,7 @@ const socketListening = (io: Socket) => {
         //TODO : 배틀 매칭이 완료되었을때, 매칭된 유저들에게 매칭 정보를 알려주어야한다. 학교정보 같은거 ?
         //그리고 매칭시 DB연결을 생각해보아야 한다.
         const anotherUsers = anotherRoom.users.map((user) => {
-          const { socket, ...newUser } = user
+          const { socket, items, ...newUser } = user
           return newUser
         })
 
@@ -135,6 +135,7 @@ const socketListening = (io: Socket) => {
 
           const mission = createMission()
           //미션 생성
+          inProgressBattle[battleRoomId].mission = mission
           io.to(battleRoomId).emit('startWalkingMode', { mission })
           waitingBattle[battleRoomId] = false
         }
@@ -227,11 +228,13 @@ const socketListening = (io: Socket) => {
 
         //미션에 성공했으면 전체에게 미션성공을 알리는 이벤트를 발생시킴
         //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
+        const currentBattle: battleInfo = inProgressBattle[battleRoomId]
+        const currentCrewInfo = currentBattle.crewInfo
         let isEnd = false
-        crewInfo.map((crew) => {
+
+        currentCrewInfo.map((crew) => {
           const interval = currentInterval[crew.roomId]
           if (interval) {
-            console.log('interval 제거')
             clearInterval(interval)
             currentInterval[crew.roomId] = null
           }
@@ -242,8 +245,18 @@ const socketListening = (io: Socket) => {
           }
         })
 
+        //socket을 안빼면 앱에서 crewInfo를 받을 때 에러가 떠서 Socket을 빼야함.
+        currentCrewInfo.map((crew) => {
+          const filteredUser = crew.users.map((user) => {
+            const { socket, items, ...newUser } = user
+            return newUser
+          })
+
+          crew.users = filteredUser
+        })
+
         io.to(battleRoomId).emit('missionSuccess', {
-          crewInfo,
+          crewInfo: currentCrewInfo,
           mission,
           campusName,
           isEnd,
@@ -255,7 +268,7 @@ const socketListening = (io: Socket) => {
       const { domain } = campus
       //매칭대기열 취소
       matchingQueue[domain] = matchingQueue[domain].filter(
-        (user) => user.socket.id !== userSocketId,
+        (user) => user.socket?.id !== userSocketId,
       )
       console.log(`[${userSocketId}] 를 [${domain}] 매칭 대기열에서 삭제`)
       printMatchingQueue(domain)
@@ -269,8 +282,8 @@ const socketListening = (io: Socket) => {
       const currentCrew = battleQueue.find((crew) => crew.roomId === crewId)
       if (!currentCrew) return
       currentCrew.users.map((user) => {
-        console.log(`${user.socket.id} 가 ${crewId}룸에서 나감.`)
-        user.socket.leave(crewId)
+        console.log(`${user.socket?.id} 가 ${crewId}룸에서 나감.`)
+        user.socket?.leave(crewId)
       })
       //현재 배틀큐에 있는 룸 정보 없애야함
       battleQueue = battleQueue.filter((crew) => crew != currentCrew)
@@ -295,8 +308,8 @@ const createRoom = (campus: campusInfo): crewRoomInfo => {
   //Room으로 이동
   const roomId = uuidv4()
   users.map((user) => {
-    user.socket.join(roomId)
-    console.log(`[${user.socket.id}] 를 [${roomId}]로 이동`)
+    user.socket?.join(roomId)
+    console.log(`[${user.socket?.id}] 를 [${roomId}]로 이동`)
   })
   printMatchingQueue(domain)
 
@@ -340,8 +353,8 @@ const createBattleRoom = (
   const battleRoomId = uuidv4()
   allUsers.map((user) => {
     //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
-    user.socket.join(battleRoomId)
-    console.log(`${user.socket.id} 를 battleRoom : ${battleRoomId}로 이동`)
+    user.socket?.join(battleRoomId)
+    console.log(`${user.socket?.id} 를 battleRoom : ${battleRoomId}로 이동`)
   })
 
   //매칭완료된 크루를 배틀큐에서 제거한다.
