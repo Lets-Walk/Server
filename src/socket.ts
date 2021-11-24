@@ -245,8 +245,11 @@ const socketListening = (io: Socket) => {
           }
         })
 
+        //deep copy
+        const filteredCrewInfo = currentCrewInfo.map((crew) => ({ ...crew }))
+
         //socket을 안빼면 앱에서 crewInfo를 받을 때 에러가 떠서 Socket을 빼야함.
-        currentCrewInfo.map((crew) => {
+        filteredCrewInfo.map((crew) => {
           const filteredUser = crew.users.map((user) => {
             const { socket, items, ...newUser } = user
             return newUser
@@ -256,7 +259,7 @@ const socketListening = (io: Socket) => {
         })
 
         io.to(battleRoomId).emit('missionSuccess', {
-          crewInfo: currentCrewInfo,
+          crewInfo: filteredCrewInfo,
           mission,
           campusName,
           isEnd,
