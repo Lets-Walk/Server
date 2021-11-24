@@ -20,7 +20,8 @@ export interface userInfo {
   nickname: string
   profileUrl: string
   campus: campusInfo
-  socket: Socket
+  socket?: Socket
+  items?: marker[]
 }
 
 export interface campusInfo {
@@ -40,6 +41,7 @@ export interface crewRoomInfo {
 export interface battleInfo {
   battleRoomId: string
   crewInfo: crewRoomInfo[]
+  mission?: string
 }
 
 export interface inProgressBattle {
