@@ -8,10 +8,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         autoIncrement: true,
       },
-      headcount: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
       score: {
         type: DataTypes.INTEGER,
         allowNull: true,

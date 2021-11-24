@@ -20,6 +20,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },
+      wincount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      losecount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
     },
     { freezeTableName: true, timestamps: false },
   )

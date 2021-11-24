@@ -33,7 +33,10 @@ const authUser = async (req, res, next) => {
       const user = await User.findOne({
         where: { id },
         include: [
-          { model: Walk, attributes: ['stepcount', 'wmcount'] },
+          {
+            model: Walk,
+            attributes: ['stepcount', 'wmcount', 'wincount', 'losecount'],
+          },
           { model: Campus, attributes: ['id', 'name', 'domain', 'image'] },
         ],
       })

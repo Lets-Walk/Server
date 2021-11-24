@@ -42,6 +42,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: '',
       },
+      profileUrl: {
+        type: DataTypes.STRING,
+        defaultValue: 'default.png',
+      },
     },
     { timestamps: true },
   )
