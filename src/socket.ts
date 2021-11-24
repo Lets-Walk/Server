@@ -173,8 +173,12 @@ const socketListening = (io: Socket) => {
 
         //미션 종류에 따라 달라질 수 있음.
         let effectedCrew
+        let effectedCrewId
         crewInfo.map((crew) => {
-          if (crew.campus.name !== campusName) effectedCrew = crew
+          if (crew.campus.name !== campusName) {
+            effectedCrew = crew
+            effectedCrewId = crew.roomId
+          }
         })
 
         const { type } = jokerMission
@@ -205,7 +209,7 @@ const socketListening = (io: Socket) => {
           seconds -= 1
         }, 1000)
 
-        currentInterval[crewId] = interval
+        currentInterval[effectedCrewId] = interval
       }, 5000)
     })
 
@@ -238,7 +242,14 @@ const socketListening = (io: Socket) => {
         //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
         let isEnd = false
         crewInfo.map((crew) => {
+          const interval = currentInterval[crew.roomId]
+          if (interval) {
+            console.log('interval 제거')
+            clearInterval(interval)
+            currentInterval[crew.roomId] = null
+          }
           if (crew.campus.name !== campusName) {
+            //라이프 차감
             crew.life -= 1
             if (crew.life === 0) isEnd = true
           }
@@ -250,14 +261,6 @@ const socketListening = (io: Socket) => {
           campusName,
           isEnd,
         })
-
-        //조커 미션 카운트 interval 제거
-        const interval = currentInterval[crewId]
-        if (interval) {
-          console.log('interval 제거')
-          clearInterval(interval)
-          currentInterval[crewId] = null
-        }
       },
     )
 
