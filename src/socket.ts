@@ -211,24 +211,18 @@ const socketListening = (io: Socket) => {
     //미션 성공 검증
     socket.on(
       'missionValidation',
-      ({
-        mission,
-        newInventory,
-        battleRoomId,
-        crewInfo,
-        campusName,
-        crewId,
-      }) => {
+      ({ newInventory, battleRoomId, crewInfo, campusName, crewId }) => {
+        const currentBattle: battleInfo = inProgressBattle[battleRoomId]
+        const mission = currentBattle.mission
         //미션타입과 인벤토리값을 이용하여 미션 성공여부를 검증.
         const isSuccess: boolean = isMissionSuccess(mission, newInventory)
-        // const isSuccess = true //for test
 
         //미션에 성공하지 못했음
         if (!isSuccess) return
 
         //미션에 성공했으면 전체에게 미션성공을 알리는 이벤트를 발생시킴
         //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
-        const currentBattle: battleInfo = inProgressBattle[battleRoomId]
+
         const currentCrewInfo = currentBattle.crewInfo
         let isEnd = false
 
