@@ -330,6 +330,11 @@ const socketListening = (io: Socket) => {
         currentUser.items = items
       }
     })
+
+    socket.on('reconnect', ({ battleRoomId }) => {
+      const currentBattle = inProgressBattle[battleRoomId]
+      socket.emit('reconnect', currentBattle)
+    })
   })
 
   console.log('Socket running')
@@ -389,8 +394,11 @@ const createBattleRoom = (
   const battleRoomId = uuidv4()
   allUsers.map((user) => {
     //user들을 새로운 Room으로 이동시키고, User에게 워킹모드 시작 알려야함.
-    user.socket?.join(battleRoomId)
-    console.log(`${user.socket?.id} 를 battleRoom : ${battleRoomId}로 이동`)
+    if (user.socket) {
+      user.socket.join(battleRoomId)
+      console.log(`${user.socket?.id} 를 battleRoom : ${battleRoomId}로 이동`)
+      delete user.socket
+    }
   })
 
   //매칭완료된 크루를 배틀큐에서 제거한다.
