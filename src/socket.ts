@@ -158,12 +158,12 @@ const socketListening = (io: Socket) => {
     })
 
     //조커아이템 획득
-    socket.on('jokerGain', ({ crewId, battleRoomId, crewInfo, campusName }) => {
+    socket.on('jokerGain', ({ crewId, battleRoomId, campusName }) => {
       //5초간 대기 후 조커 미션 전달
       setTimeout(() => {
         const jokerMission = createJokerMission()
         const obtainCampus = campusName
-
+        const crewInfo = inProgressBattle[battleRoomId].crewInfo
         //미션 종류에 따라 달라질 수 있음.
         let effectedCrew
         let effectedCrewId
