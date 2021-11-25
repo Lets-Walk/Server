@@ -202,9 +202,16 @@ const socketListening = (io: Socket) => {
     })
 
     //크루원간 인벤토리 동기화
-    socket.on('inventorySync', ({ crewId, newInventory }) => {
+    socket.on('inventorySync', ({ crewId, battleRoomId, newInventory }) => {
       console.log('inventorySync')
-      // socket.broadcast.to(crewId).emit('inventorySync', { inventory })
+      const currentBattle = inProgressBattle[battleRoomId]
+      const currentCrew = currentBattle.crewInfo.find(
+        (crew) => crew.roomId === crewId,
+      )
+      if (currentCrew) {
+        currentCrew.inventory = newInventory
+      }
+
       io.to(crewId).emit('inventorySync', { newInventory })
     })
 
@@ -213,16 +220,23 @@ const socketListening = (io: Socket) => {
       'missionValidation',
       ({ newInventory, battleRoomId, crewInfo, campusName, crewId }) => {
         const currentBattle: battleInfo = inProgressBattle[battleRoomId]
+        const currentCrew = currentBattle.crewInfo.find(
+          (crew) => crew.roomId === crewId,
+        )
+        if (!currentCrew) return
         const mission = currentBattle.mission
         //미션타입과 인벤토리값을 이용하여 미션 성공여부를 검증.
-        const isSuccess: boolean = isMissionSuccess(mission, newInventory)
+        const isSuccess: boolean = isMissionSuccess(
+          mission,
+          currentCrew.inventory,
+        )
 
         //미션에 성공하지 못했음
         if (!isSuccess) return
 
         //미션에 성공했으면 전체에게 미션성공을 알리는 이벤트를 발생시킴
         //ex. 중앙대학교 크루가 '원페어' 미션을 완료했슴니다. 그리고 crewInfo의 값을 갱신함.
-
+        currentCrew.inventory = []
         const currentCrewInfo = currentBattle.crewInfo
         let isEnd = false
 

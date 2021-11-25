@@ -15,6 +15,11 @@ export interface marker {
   lng: number
 }
 
+export interface item {
+  type: string
+  quantity: number
+}
+
 export interface userInfo {
   userId: string
   nickname: string
@@ -22,6 +27,7 @@ export interface userInfo {
   campus: campusInfo
   socket?: Socket
   items?: marker[]
+  location?: marker
 }
 
 export interface campusInfo {
@@ -36,6 +42,7 @@ export interface crewRoomInfo {
   campus: campusInfo
   life: number
   users: userInfo[]
+  inventory?: item[]
 }
 
 export interface battleInfo {
