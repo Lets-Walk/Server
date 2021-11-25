@@ -271,6 +271,9 @@ const socketListening = (io: Socket) => {
           crew.users = filteredUser
         })
 
+        //크루 인벤토리 초기화
+        currentBattle.crewInfo.map((crew) => (crew.inventory = []))
+
         io.to(battleRoomId).emit('missionSuccess', {
           crewInfo: filteredCrewInfo,
           mission,
@@ -283,6 +286,8 @@ const socketListening = (io: Socket) => {
         //inProgress에서 제거 등
         if (isEnd) {
           delete inProgressBattle.battleRoomId
+          removeBattleRoomId(currentBattle.crewInfo[0].users)
+          removeBattleRoomId(currentBattle.crewInfo[1].users)
         }
       },
     )
@@ -319,20 +324,31 @@ const socketListening = (io: Socket) => {
     })
 
     socket.on('sendItems', ({ battleRoomId, crewId, items, userId }) => {
+      console.log('sendItems')
+
       const currentBattle = inProgressBattle[battleRoomId]
       const currentCrew = currentBattle.crewInfo.find(
         (crew) => crew.roomId === crewId,
       )
+
       const currentUser = currentCrew?.users.find(
         (user) => user.userId === userId,
       )
+
       if (currentUser) {
         currentUser.items = items
       }
     })
 
-    socket.on('reconnect', ({ battleRoomId }) => {
+    socket.on('reconnect', ({ battleRoomId, campusName }) => {
       const currentBattle = inProgressBattle[battleRoomId]
+      const currentCrew = currentBattle?.crewInfo.find(
+        (crew) => crew.campus.name === campusName,
+      )
+      socket.join(battleRoomId)
+      if (currentCrew) {
+        socket.join(currentCrew.roomId)
+      }
       socket.emit('reconnect', currentBattle)
     })
   })
@@ -416,6 +432,16 @@ const saveBattleRoomId = (userList, battleRoomId) => {
         { battleRoomId: battleRoomId },
         { where: { id: user.userId } },
       )
+    } catch (err) {
+      console.log(err)
+    }
+  })
+}
+
+const removeBattleRoomId = (userList) => {
+  userList.map((user) => {
+    try {
+      User.update({ battleRoomId: null }, { where: { id: user.userId } })
     } catch (err) {
       console.log(err)
     }
