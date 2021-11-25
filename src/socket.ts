@@ -12,6 +12,7 @@ import {
 import MISSION_LIST from '../constants/battleMissions'
 import JOKER_MISSION_LIST from '../constants/jokerMissions'
 import isMissionSuccess from './utils/missionValidation'
+import { User } from '../models'
 
 const matchingQueue: matchingQueue = {} //캠퍼스별 매칭 대기열
 let battleQueue: crewRoomInfo[] = [] //크루 배틀매칭 대기열
@@ -98,6 +99,10 @@ const socketListening = (io: Socket) => {
         }
 
         inProgressBattle[battleRoomId] = currentBattle
+
+        //유저들의 battleRoomId DB에 저장
+        saveBattleRoomId(userList, battleRoomId)
+        saveBattleRoomId(anotherUsers, battleRoomId)
 
         //매칭완료된 유저들에게 매칭 정보 emit
         io.to(battleRoomId).emit('battleMatching', {
@@ -272,6 +277,13 @@ const socketListening = (io: Socket) => {
           campusName,
           isEnd,
         })
+
+        //워킹모드 종료시의 로직필요
+        //DB에 결과반영
+        //inProgress에서 제거 등
+        if (isEnd) {
+          delete inProgressBattle.battleRoomId
+        }
       },
     )
 
@@ -387,6 +399,19 @@ const createBattleRoom = (
   )
 
   return battleRoomId
+}
+
+const saveBattleRoomId = (userList, battleRoomId) => {
+  userList.map((user) => {
+    try {
+      User.update(
+        { battleRoomId: battleRoomId },
+        { where: { id: user.userId } },
+      )
+    } catch (err) {
+      console.log(err)
+    }
+  })
 }
 
 const createMission = () => {

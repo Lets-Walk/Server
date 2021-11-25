@@ -46,6 +46,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         defaultValue: 'default.png',
       },
+      battleRoomId: {
+        type: DataTypes.STRING,
+        defaultValue: null,
+      },
     },
     { timestamps: true },
   )
