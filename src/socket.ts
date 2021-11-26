@@ -1,4 +1,4 @@
-import moment from 'moment'
+import moment from 'moment-timezone'
 import { Socket } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -12,7 +12,7 @@ import {
 import MISSION_LIST from '../constants/battleMissions'
 import JOKER_MISSION_LIST from '../constants/jokerMissions'
 import isMissionSuccess from './utils/missionValidation'
-import { User } from '../models'
+import { User, Result } from '../models'
 
 const matchingQueue: matchingQueue = {} //캠퍼스별 매칭 대기열
 let battleQueue: crewRoomInfo[] = [] //크루 배틀매칭 대기열
@@ -27,7 +27,7 @@ const SECOND = 1 // 1초
 
 const socketListening = (io: Socket) => {
   io.on('connection', (socket: Socket) => {
-    const date = moment(new Date()).format('HH:mm:ss')
+    const date = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
     const socketId = socket.id
     socket.emit('connection')
     console.log(`✨[connect] socket id : ${socketId} | ${date}`)
@@ -93,9 +93,11 @@ const socketListening = (io: Socket) => {
         })
 
         //서버에서는 현재 진행중인 워킹모드에 대한 데이터가 있어야함.
+        const startTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
         const currentBattle: battleInfo = {
           battleRoomId: battleRoomId,
           crewInfo: [currentRoom, anotherRoom],
+          startTime: startTime,
         }
 
         inProgressBattle[battleRoomId] = currentBattle
@@ -223,7 +225,7 @@ const socketListening = (io: Socket) => {
     //미션 성공 검증
     socket.on(
       'missionValidation',
-      ({ newInventory, battleRoomId, crewInfo, campusName, crewId }) => {
+      async ({ newInventory, battleRoomId, crewInfo, campusName, crewId }) => {
         const currentBattle: battleInfo = inProgressBattle[battleRoomId]
         const currentCrew = currentBattle.crewInfo.find(
           (crew) => crew.roomId === crewId,
@@ -285,6 +287,8 @@ const socketListening = (io: Socket) => {
         //DB에 결과반영
         //inProgress에서 제거 등
         if (isEnd) {
+          //result결과 추가
+          await saveResult(currentBattle, campusName)
           removeBattleRoomId(currentBattle.crewInfo[0].users)
           removeBattleRoomId(currentBattle.crewInfo[1].users)
           setTimeout(() => {
@@ -448,6 +452,37 @@ const removeBattleRoomId = (userList) => {
       console.log(err)
     }
   })
+}
+
+const saveResult = async (currentBattle, winCampus) => {
+  const allUsers = [
+    ...currentBattle.crewInfo[0].users,
+    ...currentBattle.crewInfo[1].users,
+  ]
+
+  const endTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
+  const result = await Result.create({
+    startTime: currentBattle.startTime,
+    endTime: endTime,
+    winCampus: winCampus,
+    campus1: currentBattle.crewInfo[0].campus.name,
+    campus2: currentBattle.crewInfo[1].campus.name,
+  })
+
+  const users = await Promise.all(
+    allUsers.map(async (user) => {
+      const userData = await User.findOne({ where: { id: user.userId } })
+      return userData
+    }),
+  )
+
+  await Promise.all(
+    users.map(async (user) => {
+      await user.addResult(result)
+    }),
+  )
+
+  return
 }
 
 const createMission = () => {

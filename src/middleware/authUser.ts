@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-import { User, Walk, Campus } from '../../models'
+import { User, Walk, Campus, Result } from '../../models'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -38,6 +38,9 @@ const authUser = async (req, res, next) => {
             attributes: ['stepcount', 'wmcount', 'wincount', 'losecount'],
           },
           { model: Campus, attributes: ['id', 'name', 'domain', 'image'] },
+          {
+            model: Result,
+          },
         ],
       })
       req.token = jwtToken
