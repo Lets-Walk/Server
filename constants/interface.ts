@@ -49,6 +49,7 @@ export interface battleInfo {
   battleRoomId: string
   crewInfo: crewRoomInfo[]
   mission?: string
+  startTime?: string
 }
 
 export interface inProgressBattle {
