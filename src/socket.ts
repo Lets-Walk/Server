@@ -285,9 +285,11 @@ const socketListening = (io: Socket) => {
         //DB에 결과반영
         //inProgress에서 제거 등
         if (isEnd) {
-          delete inProgressBattle.battleRoomId
           removeBattleRoomId(currentBattle.crewInfo[0].users)
           removeBattleRoomId(currentBattle.crewInfo[1].users)
+          setTimeout(() => {
+            delete inProgressBattle[battleRoomId]
+          }, 1000)
         }
       },
     )
