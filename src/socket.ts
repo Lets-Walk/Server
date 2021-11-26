@@ -93,7 +93,7 @@ const socketListening = (io: Socket) => {
         })
 
         //서버에서는 현재 진행중인 워킹모드에 대한 데이터가 있어야함.
-        const startTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
+        const startTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm')
         const currentBattle: battleInfo = {
           battleRoomId: battleRoomId,
           crewInfo: [currentRoom, anotherRoom],
@@ -462,7 +462,7 @@ const saveResult = async (currentBattle, winCampus) => {
 
   const allNickname = allUsers.map((user) => user.nickname).join(',')
   const date = moment(new Date()).tz('Asia/Seoul').format('YY.MM.DD')
-  const endTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
+  const endTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm')
   const result = await Result.create({
     date: date,
     startTime: currentBattle.startTime,
