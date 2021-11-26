@@ -460,6 +460,7 @@ const saveResult = async (currentBattle, winCampus) => {
     ...currentBattle.crewInfo[1].users,
   ]
 
+  const allNickname = allUsers.map((user) => user.nickname).join(',')
   const endTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
   const result = await Result.create({
     startTime: currentBattle.startTime,
@@ -467,6 +468,7 @@ const saveResult = async (currentBattle, winCampus) => {
     winCampus: winCampus,
     campus1: currentBattle.crewInfo[0].campus.name,
     campus2: currentBattle.crewInfo[1].campus.name,
+    participants: allNickname,
   })
 
   const users = await Promise.all(

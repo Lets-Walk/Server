@@ -28,6 +28,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      participants: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
     { timestamps: false, freezeTableName: true },
   )
