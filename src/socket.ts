@@ -461,8 +461,10 @@ const saveResult = async (currentBattle, winCampus) => {
   ]
 
   const allNickname = allUsers.map((user) => user.nickname).join(',')
+  const date = moment(new Date()).tz('Asia/Seoul').format('YY.MM.DD')
   const endTime = moment(new Date()).tz('Asia/Seoul').format('HH:mm:ss')
   const result = await Result.create({
+    date: date,
     startTime: currentBattle.startTime,
     endTime: endTime,
     winCampus: winCampus,
