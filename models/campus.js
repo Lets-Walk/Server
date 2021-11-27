@@ -16,6 +16,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      wincount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      losecount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
       score: {
         type: DataTypes.BIGINT,
         allowNull: true,

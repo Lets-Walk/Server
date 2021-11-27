@@ -491,8 +491,14 @@ const saveResult = async (currentBattle, winCampus) => {
   const winCampusData = await Campus.findOne({ where: { name: winCampus } })
   const loseCampusData = await Campus.findOne({ where: { name: loseCampus } })
 
-  winCampusData.increment('score', { by: 50 })
-  loseCampusData.increment('score', { by: 10 })
+  winCampusData.increment({
+    wincount: 1,
+    score: 50,
+  })
+  loseCampusData.increment({
+    losecount: 1,
+    score: 10,
+  })
 
   const allNickname = allUsers.map((user) => user.nickname).join(',')
   const date = moment(new Date()).tz('Asia/Seoul').format('YY.MM.DD')
