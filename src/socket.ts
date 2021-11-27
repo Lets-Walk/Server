@@ -12,7 +12,7 @@ import {
 import MISSION_LIST from '../constants/battleMissions'
 import JOKER_MISSION_LIST from '../constants/jokerMissions'
 import isMissionSuccess from './utils/missionValidation'
-import { User, Result } from '../models'
+import { User, Result, Walk, Campus } from '../models'
 
 const matchingQueue: matchingQueue = {} //캠퍼스별 매칭 대기열
 let battleQueue: crewRoomInfo[] = [] //크루 배틀매칭 대기열
@@ -455,10 +455,44 @@ const removeBattleRoomId = (userList) => {
 }
 
 const saveResult = async (currentBattle, winCampus) => {
-  const allUsers = [
-    ...currentBattle.crewInfo[0].users,
-    ...currentBattle.crewInfo[1].users,
-  ]
+  const [crew1, crew2] = currentBattle.crewInfo
+  const allUsers = [...crew1.users, ...crew2.users]
+
+  let winUsers = []
+  let loseUsers = []
+  let loseCampus = ''
+  if (crew1.campus.name === winCampus) {
+    winUsers = crew1.users
+    loseUsers = crew2.users
+    loseCampus = crew2.campus.name
+  } else {
+    loseUsers = crew1.users
+    winUsers = crew2.users
+    loseCampus = crew1.campus.name
+  }
+
+  //이긴 유저들에 대해 wincount와 contiribution 증가시킴
+  winUsers.map(async (user: userInfo) => {
+    const userWalkData = await Walk.findOne({ where: { userId: user.userId } })
+    await userWalkData.increment({
+      wincount: 1,
+      contribution: 50,
+    })
+  })
+
+  loseUsers.map(async (user: userInfo) => {
+    const userWalkData = await Walk.findOne({ where: { userId: user.userId } })
+    await userWalkData.increment({
+      losecount: 1,
+      contribution: 10,
+    })
+  })
+
+  const winCampusData = await Campus.findOne({ where: { name: winCampus } })
+  const loseCampusData = await Campus.findOne({ where: { name: loseCampus } })
+
+  winCampusData.increment('score', { by: 50 })
+  loseCampusData.increment('score', { by: 10 })
 
   const allNickname = allUsers.map((user) => user.nickname).join(',')
   const date = moment(new Date()).tz('Asia/Seoul').format('YY.MM.DD')
