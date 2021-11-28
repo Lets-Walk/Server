@@ -2,6 +2,7 @@ import express from 'express'
 
 import { Campus, User, Walk } from '../../models'
 import { serviceResult } from '../../constants/interface'
+import { Op } from 'sequelize'
 
 class CampusService {
   constructor() {}
@@ -24,6 +25,65 @@ class CampusService {
       success: true,
       message: 'All Campus data',
       data: allCampus,
+    }
+  }
+
+  async getCampusRank() {
+    let allCampus = null
+    try {
+      allCampus = await Campus.findAll({
+        where: { score: { [Op.gt]: 0 } },
+        order: [['score', 'DESC']],
+      })
+    } catch (err) {
+      console.log(err)
+      return { status: 400, success: false, message: 'db connection error' }
+    }
+
+    if (!allCampus) {
+      return { status: 404, success: false, message: 'Campus does not exist' }
+    }
+
+    return {
+      status: 200,
+      success: true,
+      message: 'All Campus ranking data',
+      data: allCampus,
+    }
+  }
+
+  async getCampusUsers(campusId) {
+    let allUsers: any = null
+    try {
+      allUsers = await User.findAll({
+        where: {
+          campusId: campusId,
+        },
+        attributes: ['id', 'name', 'nickname'],
+        include: [
+          {
+            model: Walk,
+            where: {
+              contribution: { [Op.gt]: 0 },
+            },
+            order: [['contribution', 'DESC']],
+          },
+        ],
+      })
+    } catch (err) {
+      console.log(err)
+      return { status: 400, success: false, message: 'db connection error' }
+    }
+
+    if (!allUsers || allUsers.length === 0) {
+      return { status: 404, success: false, message: 'User does not exist' }
+    }
+
+    return {
+      status: 200,
+      success: true,
+      message: 'All Campus User data',
+      data: allUsers,
     }
   }
 
