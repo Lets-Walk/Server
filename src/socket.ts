@@ -474,7 +474,7 @@ const saveResult = async (currentBattle, winCampus) => {
   //이긴 유저들에 대해 wincount와 contiribution 증가시킴
   winUsers.map(async (user: userInfo) => {
     const userWalkData = await Walk.findOne({ where: { userId: user.userId } })
-    await userWalkData.increment({
+    userWalkData.increment({
       wincount: 1,
       contribution: 50,
     })
@@ -482,7 +482,7 @@ const saveResult = async (currentBattle, winCampus) => {
 
   loseUsers.map(async (user: userInfo) => {
     const userWalkData = await Walk.findOne({ where: { userId: user.userId } })
-    await userWalkData.increment({
+    userWalkData.increment({
       losecount: 1,
       contribution: 10,
     })
@@ -522,7 +522,7 @@ const saveResult = async (currentBattle, winCampus) => {
 
   await Promise.all(
     users.map(async (user) => {
-      await user.addResult(result)
+      user.addResult(result)
     }),
   )
 
