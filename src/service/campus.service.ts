@@ -10,7 +10,9 @@ class CampusService {
   async getAllCampus(): Promise<serviceResult> {
     let allCampus = null
     try {
-      allCampus = await Campus.findAll()
+      allCampus = await Campus.findAll({
+        order: [['name', 'ASC']],
+      })
     } catch (err) {
       console.error(err)
       return { status: 400, success: false, message: 'db connection error' }
