@@ -35,7 +35,13 @@ const authUser = async (req, res, next) => {
         include: [
           {
             model: Walk,
-            attributes: ['stepcount', 'wmcount', 'wincount', 'losecount'],
+            attributes: [
+              'stepcount',
+              'wmcount',
+              'wincount',
+              'losecount',
+              'contribution',
+            ],
           },
           { model: Campus, attributes: ['id', 'name', 'domain', 'image'] },
           {
