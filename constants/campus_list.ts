@@ -90,11 +90,6 @@ export default [
     image: 'ikw.png',
   },
   {
-    name: '고려대학교',
-    domain: '@korea.ac.kr',
-    image: 'korea.png',
-  },
-  {
     name: '경일대학교',
     domain: '@kiu.ac.kr',
     image: 'kiu.png',
