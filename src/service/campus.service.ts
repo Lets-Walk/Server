@@ -68,9 +68,9 @@ class CampusService {
             where: {
               contribution: { [Op.gt]: 0 },
             },
-            order: [['contribution', 'DESC']],
           },
         ],
+        order: [[{ model: Walk }, 'contribution', 'DESC']],
       })
     } catch (err) {
       console.log(err)
