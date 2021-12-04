@@ -5,19 +5,6 @@ import MapService from '../service/map.service'
 
 const mapController = express.Router()
 
-mapController.get('/lab', (req, res) => {
-  const { name }: { name?: string } = req.query
-
-  let result
-  if (name) {
-    result = MapService.getIngredientByName(name)
-  } else {
-    result = MapService.getAllIngredient()
-  }
-
-  if (result.status) return res.status(result.status).json(result)
-})
-
 mapController.get('/marker', (req, res) => {
   const { lat, lng }: { lat?: string; lng?: string } = req.query
   if (!lat || !lng)
