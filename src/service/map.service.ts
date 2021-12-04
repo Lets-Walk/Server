@@ -2,37 +2,9 @@ import express from 'express'
 
 import { User, Campus, Walk } from '../../models'
 import { marker, serviceResult } from '../../constants/interface'
-import ingredient from '../../constants/ingredient'
 
 class MapService {
   constructor() {}
-
-  getAllIngredient(): serviceResult {
-    return {
-      status: 200,
-      success: true,
-      data: ingredient,
-      message: 'Get All ingredient success!',
-    }
-  }
-
-  getIngredientByName(name: string): serviceResult {
-    if (name in ingredient) {
-      const data = ingredient[name]
-      return {
-        status: 200,
-        success: true,
-        data: data,
-        message: 'Get ingredient success!',
-      }
-    }
-
-    return {
-      status: 400,
-      success: false,
-      message: `${name} lab does not exist`,
-    }
-  }
 
   getMarkerList(lat: number, lng: number): serviceResult {
     //중심좌표를 기준으로 1.5km 경계값

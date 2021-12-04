@@ -56,8 +56,6 @@ module.exports = (sequelize, DataTypes) => {
   User.associate = (models) => {
     User.belongsTo(models.Campus, { foreignKey: 'campusId' })
     User.hasOne(models.Walk, { foreignKey: 'userId', onDelete: 'CASCADE' })
-    User.hasMany(models.Item, { foreignKey: 'userId' })
-    User.belongsToMany(models.Crew, { through: 'Crew-Users' })
     User.belongsToMany(models.Result, { through: 'Result-Users' })
   }
   return User
